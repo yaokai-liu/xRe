@@ -22,7 +22,8 @@ typedef enum {
     inverse     = '!',       // group inverse: '^'
     assign      = '=',       // group assign to variable: '='
     call        = '@',       // call variable: '@'
-    numOf       = '#',       // value of variable: '#'
+    orderOf     = '#',       // order of variable: '#'
+    lastValue   = '$',       // last matched result of variable: '￥'
     condWith    = '~',       // match condition: '~'
     onlyParse   = '^',       // only parse but not execute: '!'
 
@@ -47,7 +48,7 @@ xBool CAT_ARRAY[] = {
         [inverse]   = inverse,
         [assign]    = assign,
         [call]      = call,
-        [numOf]     = numOf,
+        [orderOf]   = orderOf,
         [condWith]  = condWith,
         [onlyParse] = onlyParse,
 };
