@@ -67,7 +67,7 @@ And there are some different expressions:
    1. Using `=` can assign an xRe structure to a variable in an xRe string.
    2. Using `@` can call the structure of it in match program in an xRe string.
    3. Using `#` can get its order number in variable array in an expression.
-   4. Using `$` can get the last match result of it in an expression.
+   4. Using `$` can get the last matched result of it in an expression.
    
    When assign or call a variable, the variable must be bracketed with `<` and `>`.
 3. **Functions**: Functions are those identifiers that stored in match program and can be called.
