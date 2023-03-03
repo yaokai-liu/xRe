@@ -394,8 +394,10 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
         return nullptrof(Expression *);
     }
     (*offs) ++;
+
     xuLong offset;
     Expression ** expressions = allocator->malloc(2 * sizeof(Expression *));
+
     expressions[0] = parseExp(sp + *offs, &offset, allocator);
     if (!expressions[0]) {
         if (offset > 0) {
@@ -406,6 +408,14 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
     } else {
         (*offs) += offset;
     }
+
+    if (sp[*offs] != comma && sp[*offs] != endC) {
+        releaseObj(expressions[0], allocator);
+        allocator->free(expressions);
+        return nullptrof(Expression *);
+    }
+    (*offs) ++;
+
     expressions[1] = parseExp(sp + *offs, &offset, allocator);
     if (!expressions[1]) {
         if (offset > 0) {
@@ -417,6 +427,14 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
     } else {
         (*offs) += offset;
     }
+
+    if (sp[*offs] != endC) {
+        releaseObj(expressions[0], allocator);
+        releaseObj(expressions[1], allocator);
+        allocator->free(expressions);
+        return nullptrof(Expression *);
+    }
+    (*offs) ++;
 
     return expressions;
 }
