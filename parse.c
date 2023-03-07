@@ -138,6 +138,8 @@ Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             default:
                 obj = parseSeq(sp + *offs, &offset, allocator);
         }
+        *offs += offset;
+
         if (!obj) {
             goto __failed_parse_group;
         }
@@ -154,7 +156,6 @@ Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
         is_inverse = false;
         only_parse = false;
         sub_buffer[n_subs] = obj;
-        *offs += offset;
         n_subs ++;
     }
 
@@ -352,6 +353,8 @@ Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             default:
                 obj = parseSeq(sp + *offs, &offset, allocator);
         }
+        *offs += offset;
+
         if (!obj) {
             goto __failed_parse_group;
         }
@@ -368,7 +371,6 @@ Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
         is_inverse = false;
         only_parse = false;
         sub_buffer[n_subs] = obj;
-        *offs += offset;
         n_subs ++;
     }
 
@@ -465,6 +467,8 @@ Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator) {
                     end_rhs = true;
                 }
         }
+        *offs += offset;
+
         if (!obj) {
             if (end_rhs) {
                 break;
@@ -484,7 +488,6 @@ Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator) {
         is_inverse = false;
         only_parse = false;
         sub_buffer[n_subs] = obj;
-        *offs += offset;
         n_subs ++;
     }
 
@@ -515,14 +518,14 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
     Expression ** expressions = allocator->malloc(2 * sizeof(Expression *));
 
     expressions[0] = parseExp(sp + *offs, &offset, allocator);
-    if (!expressions[0]) {
-        if (offset > 0) {
+    if (offset > 0) {
+        (*offs) += offset;
+        if (!expressions[0]) {
             allocator->free(expressions);
             return nullptrof(Expression *);
         }
-        expressions[0] = parseExp(xReChar("0"), &offset, allocator);
     } else {
-        (*offs) += offset;
+        expressions[0] = parseExp(xReChar("0"), &offset, allocator);
     }
 
     if (sp[*offs] != comma && sp[*offs] != endC) {
@@ -533,15 +536,15 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
     (*offs) ++;
 
     expressions[1] = parseExp(sp + *offs, &offset, allocator);
-    if (!expressions[1]) {
-        if (offset > 0) {
+    if (offset > 0) {
+        (*offs) += offset;
+        if (!expressions[1]) {
             releaseObj(expressions[0], allocator);
             allocator->free(expressions);
             return nullptrof(Expression *);
         }
-        expressions[1] = parseExp(xReChar("0"), &offset, allocator);
     } else {
-        (*offs) += offset;
+        expressions[1] = parseExp(xReChar("0"), &offset, allocator);
     }
 
     if (sp[*offs] != endC) {

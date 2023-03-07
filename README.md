@@ -7,16 +7,16 @@ A better regular expression.
 
 ### Grammar Structures
 
+#### Escape
+
+An escape is `\ ` concat with a xRe meta character or a unicode number.
+xRe views escapes as plain characters, according to the [escape table](#escape_table).
+
 #### Plain Text (Sequence)
 Plain text(sequence) is strings have no xRe meta symbols. 
 xRe will do no operation for them at parse stage. 
 
 Match a sequence is to match every character once in order, even exists duplicates.
-
-#### Escape
-
-An escape is `\ ` concat with a xRe meta character or a unicode number.
-xRe views escapes as plain characters, according to the [escape table](#escape_table).
 
 #### Set
 
@@ -66,8 +66,8 @@ And there are some different expressions:
 2. **Variables**: Variables are those identifiers with lower letters, digits or underscore but not start with digits.
    1. Using `=` can assign an xRe structure to a variable in an xRe string.
    2. Using `@` can call the structure of it in match program in an xRe string.
-   3. Using `#` can get its order number in variable array in an expression.
-   4. Using `$` can get the last matched result of it in an expression.
+   3. Using `#` can get its order number in variable array, only can be using in expressions.
+   4. Using `$` can get the last matched result of it in an expression, present as a plain text.
    
    When assign or call a variable, the variable must be bracketed with `<` and `>`.
 3. **Functions**: Functions are those identifiers that stored in match program and can be called.
@@ -89,6 +89,36 @@ All xRe macros are:
 | `+`    | `{1,}`  |
 | `?`    | `{0,1}` |
 
+
+### xRe Attributes
+
+xRe structures can have some extern attributes, these are parts of xRe grammar. 
+
+xRe attributes determinate some special behaviors of parsing and matching.
+
+#### Only Parse
+
+Character `!` is an attribute prefix. It means the xRe structure string it prefixed will only parse to an xRe structure,
+but will do no matching.
+
+#### Inverse
+
+Character `^` is an attribute prefix. It means the xRe structure it prefixed will match its inverse text.
+
+| xRe structure | inverse behavior                                                   |
+|:--------------|:-------------------------------------------------------------------|
+| plain text    | every character is not matched in plain text, but cast same length |
+| set           | every option is not matched, but cast same length                  |
+| group         | not matched the xRe string in it                                   |
+| union         | not matched any xRe string in its options                          |
+| count         | count of matched structure is not in the range                     |
+| switch        | same expression but not matched the xRe string in it               |
+| `@` variable  | not matched the xRe string of it                                   |
+| `$` variable  | not matched the plain text xRe string of it                        |
+
+#### Other Special Attributes
+
+Character `~` suffix an xRe structure with an expression. Only matched successfully when expression is true, else failed.
 
 ### Escape Table
 
