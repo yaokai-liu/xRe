@@ -12,20 +12,20 @@ typedef enum {
     endS        = ']',      // end of set: ']'
     beginC      = '{',      // begin of count: '{'
     endC        = '}',      // end of count: '}'
-    beginV      = '<',      // begin of variable: '<'
-    endV        = '>',      // end of variable: '>'
+    beginV      = '<',      // begin of expression: '<'
+    endV        = '>',      // end of expression: '>'
 
     rangeTO     = '-',      // range to: '-'
 
     comma       = ',',       // comma: ','
     unionOR     = '|',       // group union: '|'
-    inverse     = '!',       // group inverse: '^'
+    inverse     = '^',       // group inverse: '^'
     assign      = '=',       // group assign to variable: '='
     call        = '@',       // call variable: '@'
     orderOf     = '#',       // order of variable: '#'
     lastValue   = '$',       // last matched result of variable: '￥'
-    condWith    = '~',       // match condition: '~'
-    onlyParse   = '^',       // only parse but not execute: '!'
+    attribute   = '~',       // attribute: '~'
+    onlyParse   = '!',       // only parse and not match: '!'
 
     alias       = 128,       // alias char like: '*', '+', '?', etc.
 
@@ -49,7 +49,7 @@ xBool CAT_ARRAY[] = {
         [assign]    = assign,
         [call]      = call,
         [orderOf]   = orderOf,
-        [condWith]  = condWith,
+        [attribute]  = attribute,
         [onlyParse] = onlyParse,
 };
 
@@ -132,7 +132,7 @@ Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             case lastValue: {
                 // TODO: last matched value.
             }
-            case condWith: {
+            case attribute: {
                 // TODO: match condition.
             }
             default:
