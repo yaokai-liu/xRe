@@ -66,7 +66,7 @@ typedef struct {
 } Count;
 
 
-#include "allocator.h"
+#include "alloc.h"
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator);
 Set * createSet(xSize n_plains, xReChar * plain_buffer, xSize n_ranges, Range * range_buffer , Allocator * allocator);

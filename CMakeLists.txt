@@ -13,7 +13,7 @@ add_compile_definitions(DEBUG)
 add_library(xRe
         char_t.c char_t.h
         structs.c structs.h
-        parse.c parse.h allocator.h)
+        parse.c parse.h alloc.h)
 
 target_compile_options(xRe PRIVATE "-fno-builtin")
 target_link_options(xRe PRIVATE "-nodefaultlibs")

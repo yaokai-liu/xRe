@@ -2,8 +2,8 @@
 // Created by Yaokai Liu on 2023/2/18.
 //
 
-#ifndef X_ALLOCATOR_H
-#define X_ALLOCATOR_H
+#ifndef X_ALLOC_H
+#define X_ALLOC_H
 
 #include "xtypes.h"
 
@@ -14,4 +14,4 @@ typedef struct {
     xVoid (*free)(xVoid *);
 } Allocator;
 
-#endif //X_ALLOCATOR_H
+#endif //X_ALLOC_H
