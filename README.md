@@ -63,7 +63,7 @@ An expression is special strings which not to match, but will be calculated valu
 
 And there are some different expressions:
 1. **Const Expressions**: Const expression means can be computed and replaced with their value before match stage.
-2. **Variables**: Variables are those identifiers with lower letters, digits or underscore but not start with digits.
+2. **Variables**: Variables are those identifiers consistent with only lower letters, digits or underscore but not start with digits.
    1. Using `=` can assign an xRe structure to a variable in an xRe string.
    2. Using `@` can call the structure of it in match program in an xRe string.
    3. Using `#` can get its order number in variable array, only can be using in expressions.
@@ -92,7 +92,8 @@ All xRe macros are:
 
 ### xRe Attributes
 
-xRe structures can have some extern attributes, these are parts of xRe grammar. 
+xRe structures can have some extern attributes, them are parts of xRe grammar. 
+XRe attributes was lead by `~`, bracketed with `<` and `>` and normally separated by `;`.
 
 xRe attributes determinate some special behaviors of parsing and matching.
 
@@ -119,6 +120,20 @@ Character `^` is an attribute prefix. It means the xRe structure it prefixed wil
 #### Other Special Attributes
 
 Character `~` suffix an xRe structure with an expression. Only matched successfully when expression is true, else failed.
+
+## Internal Object
+
+xRe grammar structures will be interpreted as xRe objects.
+Every kind of structure except escape will be interpreted called same name object.
+
+Specially, a group object will be view as a variable object with special variable name.
+
+## Parser
+
+An xRe parser is defined with a context of variables and a program interpreting xRe string to xRe objects.
+Different parser has different context. 
+Different xRe objects processed by the same parser will share a common context. 
+
 
 ### Escape Table
 
