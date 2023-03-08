@@ -35,13 +35,11 @@ typedef enum {
 
     comma       = ',',       // comma: ','
     unionOR     = '|',       // group union: '|'
-    inverse     = '^',       // group inverse: '^'
     assign      = '=',       // group assign to variable: '='
     call        = '@',       // call variable: '@'
     orderOf     = '#',       // order of variable: '#'
     lastValue   = '$',       // last matched result of variable: '￥'
     attribute   = '~',       // attribute: '~'
-    onlyParse   = '!',       // only parse and not match: '!'
 
     alias       = 128,       // alias char like: '*', '+', '?', etc.
 
@@ -81,20 +79,10 @@ Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     xuLong n_subs = 0;
     xuLong sub_buffer_len = XRE_PARSE_ALLOCATE_SIZE;
     ReObj ** sub_buffer = allocator->malloc(sub_buffer_len);
-    xBool is_inverse = false;
-    xBool only_parse = false;
     while (sp[*offs]) {
         xVoid * obj = nullptrof(xVoid);
         xuLong offset = 0;
         switch (sp[*offs]) {
-            case inverse:
-                is_inverse = true;
-                (*offs) ++;
-                continue;
-            case onlyParse:
-                only_parse = true;
-                (*offs) ++;
-                continue;
             case beginS: {
                 obj = parseSeq(sp + *offs, &offset, allocator);
                 break;
@@ -165,10 +153,6 @@ Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             }
             sub_buffer = new;
         }
-        ((ReObj *) obj)->is_inverse = is_inverse;
-        ((ReObj *) obj)->only_parse = only_parse;
-        is_inverse = false;
-        only_parse = false;
         sub_buffer[n_subs] = obj;
         n_subs ++;
     }
@@ -311,20 +295,10 @@ Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     xuLong n_subs = 0;
     xuLong sub_buffer_len = XRE_PARSE_ALLOCATE_SIZE;
     ReObj ** sub_buffer = allocator->malloc(sub_buffer_len);
-    xBool is_inverse = false;
-    xBool only_parse = false;
     while (sp[*offs] && sp[*offs] != endG) {
         xVoid * obj = nullptrof(xVoid);
         xuLong offset = 0;
         switch (sp[*offs]) {
-            case inverse:
-                is_inverse = true;
-                (*offs) ++;
-                continue;
-            case onlyParse:
-                only_parse = true;
-                (*offs) ++;
-                continue;
             case beginS: {
                 obj = parseSeq(sp + *offs, &offset, allocator);
                 break;
@@ -380,10 +354,6 @@ Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             }
             sub_buffer = new;
         }
-        ((ReObj *) obj)->is_inverse = is_inverse;
-        ((ReObj *) obj)->only_parse = only_parse;
-        is_inverse = false;
-        only_parse = false;
         sub_buffer[n_subs] = obj;
         n_subs ++;
     }
@@ -421,21 +391,11 @@ Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     xuLong n_subs = 0;
     xuLong sub_buffer_len = XRE_PARSE_ALLOCATE_SIZE;
     ReObj ** sub_buffer = allocator->malloc(sub_buffer_len);
-    xBool is_inverse = false;
-    xBool only_parse = false;
     while (sp[*offs]) {
         xBool end_rhs = false;
         xVoid * obj = nullptrof(xVoid);
         xuLong offset = 0;
         switch (sp[*offs]) {
-            case inverse:
-                is_inverse = true;
-                (*offs) ++;
-                continue;
-            case onlyParse:
-                only_parse = true;
-                (*offs) ++;
-                continue;
             case beginS: {
                 obj = parseSeq(sp + *offs, &offset, allocator);
                 break;
@@ -497,10 +457,6 @@ Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             }
             sub_buffer = new;
         }
-        ((ReObj *) obj)->is_inverse = is_inverse;
-        ((ReObj *) obj)->only_parse = only_parse;
-        is_inverse = false;
-        only_parse = false;
         sub_buffer[n_subs] = obj;
         n_subs ++;
     }
