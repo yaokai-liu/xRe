@@ -3,6 +3,22 @@
 //
 
 #include "parse.h"
+
+typedef struct XReParser {
+    struct {
+        xuLong position;
+        xReChar message[256];
+    } errorLog;
+    Allocator * allocator;
+    Group * (* parse)(XReParser * parser, xReChar * regexp);
+} XReParser;
+static Group * XReParser_parse(XReParser *parser, xReChar *regexp);
+
+static void XReParser_init(XReParser * parser, Allocator * allocator) {
+    parser->allocator = allocator;
+    parser->parse = XReParser_parse;
+}
+
 typedef enum {
     escape      = '\\',     // escape char: '\'
 
@@ -45,14 +61,12 @@ xBool CAT_ARRAY[] = {
         [rangeTO]   = rangeTO,
         [comma]     = comma,
         [unionOR]   = unionOR,
-        [inverse]   = inverse,
         [assign]    = assign,
         [call]      = call,
         [orderOf]   = orderOf,
         [attribute]  = attribute,
-        [onlyParse] = onlyParse,
 };
-
+Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator);
 Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
 Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
 Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator);
@@ -560,4 +574,8 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
 
 Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
 
+}
+
+static Group * XReParser_parse(XReParser *parser, xReChar *regexp) {
+    return parse(regexp, &(parser->errorLog.position), parser->allocator);
 }

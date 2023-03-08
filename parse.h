@@ -13,6 +13,8 @@
 #define XRE_PARSE_ALLOCATE_SIZE   (32 * sizeof(xVoid *))
 #endif
 
-Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator);
+typedef struct XReParser XReParser;
+
+void xReParser(XReParser * parser, Allocator * allocator);
 
 #endif //X_PARSE_H
