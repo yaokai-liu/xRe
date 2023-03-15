@@ -40,6 +40,7 @@ typedef enum {
     orderOf     = '#',       // order of variable: '#'
     lastValue   = '$',       // last matched result of variable: '￥'
     attribute   = '~',       // attribute: '~'
+    dot         = '.',       // get label: '.'
 
     alias       = 128,       // alias char like: '*', '+', '?', etc.
 

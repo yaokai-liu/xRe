@@ -40,11 +40,13 @@ typedef struct {
     xSize n_ranges;
     Range * ranges;
 } Set;
-
-typedef struct {
+typedef struct Group Group;
+typedef struct Group {
     OBJ_BASIC_ATTRIBUTE
     xSize n_subs;
     ReObj ** sub_objects;
+    xuInt groups;
+
 } Group;
 
 typedef struct {
