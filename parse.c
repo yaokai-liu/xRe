@@ -12,12 +12,29 @@ typedef struct XReParser {
     Allocator * allocator;
     Group * (* parse)(XReParser * parser, xReChar * regexp);
 } XReParser;
-static Group * XReParser_parse(XReParser *parser, xReChar *regexp);
 
-static void XReParser_init(XReParser * parser, Allocator * allocator) {
-    parser->allocator = allocator;
-    parser->parse = XReParser_parse;
+static Group * xReParser_parse(XReParser *parser, xReChar *regexp);
+
+Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator);
+Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
+Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
+Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator);
+Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator);
+Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
+Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
+
+static Group * xReParser_parse(XReParser *parser, xReChar *regexp) {
+    return parse(regexp, &(parser->errorLog.position), parser->allocator);
 }
+
+XReParser * xReParser(Allocator * _allocator) {
+    XReParser * parser = _allocator->calloc(1, sizeof(XReParser));
+    parser->allocator = _allocator;
+    parser->parse = xReParser_parse;
+    return parser;
+}
+
+
 
 typedef enum {
     escape      = '\\',     // escape char: '\'
@@ -65,13 +82,6 @@ xBool CAT_ARRAY[] = {
         [orderOf]   = orderOf,
         [attribute]  = attribute,
 };
-Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
 
 Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     *offs = 0;
@@ -531,8 +541,4 @@ Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator
 
 Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
 
-}
-
-static Group * XReParser_parse(XReParser *parser, xReChar *regexp) {
-    return parse(regexp, &(parser->errorLog.position), parser->allocator);
 }

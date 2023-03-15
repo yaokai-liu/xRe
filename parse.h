@@ -15,6 +15,6 @@
 
 typedef struct XReParser XReParser;
 
-void xReParser(XReParser * parser, Allocator * allocator);
+XReParser * xReParser(Allocator * allocator);
 
 #endif //X_PARSE_H
