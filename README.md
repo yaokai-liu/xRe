@@ -13,14 +13,14 @@ An escape is `\ ` concat with a xRe meta character or a unicode number.
 xRe views escapes as plain characters, according to the [escape table](#escape_table).
 
 #### Plain Text (Sequence)
-Plain text(sequence) is strings have no xRe meta symbols. 
+Plain text(`sequence`) is strings have no xRe meta symbols. 
 xRe will do no operation for them at parse stage. 
 
 Match a sequence is to match every character once in order, even exists duplicates.
 
 #### Set
 
-A set is characters bracketed with `[` and `]`. 
+A `set` is characters bracketed with `[` and `]`. 
 These characters include plain text characters, and `-`. 
 But `-` must be not at start or end of set characters, also not divided with only one character.
 
@@ -29,19 +29,19 @@ the two characters concat with `-`.
 
 #### Group
 
-A group is an xRe string bracketed with `(` and `)`. 
+A `group` is an xRe string bracketed with `(` and `)`. 
 
 Match a group is match the xRe string in it.
 
 #### Union
 
-A union is some xRe strings divided with `|`. 
+A `union` is some xRe strings divided with `|`. 
 
 Match a union is try to match any xRe string of the union once, and take the longest result.
 
 #### Count
 
-A count is some expressions bracketed with `{` and `}` but divided with `,`. 
+A `count` is some expressions bracketed with `{` and `}` but divided with `,`. 
 Number of expressions is 0 to 3. 
 First expression is the lower bound(included), and the second is the upper bound(included).
 The third expression is the step length of match, and its value must be a positive integer.
@@ -52,24 +52,27 @@ lower bound and at most its upper bound, in times of step length.
 
 #### Switch
 
-A switch is an expression and an xRe string bracketed with `<` and `>` but divided with `?` in order.
+A `switch` is an expression and an xRe string bracketed with `<` and `>` but divided with `?` in order.
 
 If value of the expression is not a zero, the match program will match the xRe 
 or match a part of union according to the value if the xRe string is a union.
 
 #### Expression
 
-An expression is special strings which not to match, but will be calculated value with match program context.
+An `expression` is special strings which not to match, but will be calculated value with match program context.
 
 And there are some different expressions:
 1. **Const Expressions**: Const expression means can be computed and replaced with their value before match stage.
-2. **Variables**: Variables are those identifiers consistent with only lower letters, digits or underscore but not start with digits.
-   1. Using `=` can assign an xRe structure to a variable in an xRe string.
-   2. Using `@` can call the structure of it in match program in an xRe string.
-   3. Using `#` can get its order number in variable array, only can be using in expressions.
-   4. Using `$` can get the last matched result of it in an expression, present as a plain text.
-   
-   When assign or call a variable, the variable must be bracketed with `<` and `>`.
+2. **Labels**: Labels are those identifiers consistent with only lower letters, digits or underscore but not start with digits.
+   1. Using `=` to give an xRe structure a label, only can be using in non-expression and non-set structures.
+   2. Using `@` to apply the structure of a label in match program, only can be using in non-expression and non-set structures.
+   3. Using `#` get the order number of a label in label array, only can be using in expressions.
+   4. Using `$` to apply the last matching result of a label, treat as a plain text structure,
+      only can be using in non-expression and non-set structures.
+
+   When assign or call a label, the label must be bracketed with `<` and `>`.
+
+   More details see [label](#label).
 3. **Functions**: Functions are those identifiers that stored in match program and can be called.
     The name of functions must be all upper latter, digits or underscore but not start with digits.
     Argument(s) of functions are some expression(s) bracketed with `(` and `)` after the name,
@@ -114,28 +117,37 @@ Character `^` is an attribute prefix. It means the xRe structure it prefixed wil
 | union         | not matched any xRe string in its options                          |
 | count         | count of matched structure is not in the range                     |
 | switch        | same expression but not matched the xRe string in it               |
-| `@` variable  | not matched the xRe string of it                                   |
-| `$` variable  | not matched the plain text xRe string of it                        |
+| `@` label     | as the structure the label refers                                  |
+| `$` label     | as the plain text structure                                        |
 
 #### Other Special Attributes
 
-Character `~` suffix an xRe structure with an expression. Only matched successfully when expression is true, else failed.
+The expression after the character "~" will be used as a suffix to the xRe structure. 
+The match succeeds only if the expression is true, otherwise the match fails.
 
 ## Internal Object
 
 xRe grammar structures will be interpreted as xRe objects.
 Every kind of structure except escape will be interpreted called same name object.
 
-Specially, a group object will be view as a variable object with special variable name.
+Specially, every `group` object will be assigned a special label name.
 
 ## Parser
 
-An xRe parser is defined with a context of variables and a program interpreting xRe string to xRe objects.
-Different parser has different context. 
-Different xRe objects processed by the same parser will share a common context. 
+An xRe parser consists of a program that parse xRe strings and a set of label contexts.
 
+Different parsers have different contexts.
+
+Different xRe objects generated by the same parser will share a common context.
+
+But group labels of different xRe strings will not be shared.
 
 ### Escape Table
 
 ### Operator Table
+
+## Expression
+
+### Label
+
 
