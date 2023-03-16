@@ -13,23 +13,28 @@ typedef xByte ascii;
 
 #ifdef XCHAR_USING_CHAR
 typedef char   xReChar;
-#define xReChar(x)    ((xReChar) x)
+#define xReChar(x)      x
+#define xReChar(x)    x
 #elifdef XCHAR_USING_WCHAR
 #ifdef __WCHAR_TYPE__
 typedef __WCHAR_TYPE__  xReChar;
 #else
 typedef xInt     xReChar;
 #endif
-#define xReChar(x)    L##x
+#define xReChar(x)      L##x
+#define xReString(x)    L##x
 #elifdef XCHAR_USING_ASCII
 typedef ascii xReChar;
-#define xReChar(x)   ((xReChar *) x)
+#define xReChar(x)      x
+#define xReString(x)   ((ascii *) (x))
 #elifdef XCHAR_USING_XASCII
 typedef xAscii xReChar;
-#define xReChar(x)    ((xReChar *) x)
+#define xReChar(x)      x
+#define xReString(x)    ((xAscii *) (x))
 #elifdef XCHAR_USING_XCHAR
 typedef xChar xReChar;
-#define xReChar(x)    ((xReChar *) x)
+#define xReChar(x)      ((xChar) x)
+#define xReString(x)    ((xChar *) x)
 #else
 #error "You should specify character type."
 #endif
