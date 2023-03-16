@@ -10,7 +10,7 @@ A better regular expression.
 #### Escape
 
 An escape is `\ ` concat with a xRe meta character or a unicode number.
-xRe views escapes as plain characters, according to the [escape table](#escape_table).
+xRe views escapes as plain characters, according to the [escape table](#escape-table).
 
 #### Plain Text (Sequence)
 Plain text(`sequence`) is strings have no xRe meta symbols. 
@@ -78,7 +78,7 @@ And there are some different expressions:
     Argument(s) of functions are some expression(s) bracketed with `(` and `)` after the name,
     and if more than one should be divided with `,`.
 4. **Normal Expressions**: other functions is normal expressions. Most of them have at least one operator.
-    Operators could be list in the [operator table](#operator_table).
+    Operators could be list in the [operator table](#operator-table).
 
 #### xRe Macros
 
