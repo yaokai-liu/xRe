@@ -63,7 +63,7 @@ An `expression` is special strings which not to match, but will be calculated va
 
 And there are some different expressions:
 1. **Const Expressions**: Const expression means can be computed and replaced with their value before match stage.
-2. **Labels**: Labels are those identifiers consistent with only lower letters, digits or underscore but not start with digits.
+2. **Labels**: Labels are those identifiers consistent with only lower letters, digits or underscore, and must start with lower letters.
    1. Using `=` to give an xRe structure a label, only can be using in non-expression and non-set structures.
    2. Using `@` to apply the structure of a label in match program, only can be using in non-expression and non-set structures.
    3. Using `#` get the order number of a label in label array, only can be using in expressions.
@@ -74,11 +74,11 @@ And there are some different expressions:
 
    More details see [label](#label).
 3. **Functions**: Functions are those identifiers that stored in match program and can be called.
-    The name of functions must be all upper latter, digits or underscore but not start with digits.
+    The name of functions must be all UPPER letter, digits and underscore, and must start with UPPER letters.
     Argument(s) of functions are some expression(s) bracketed with `(` and `)` after the name,
     and if more than one should be divided with `,`.
-4. **Normal Expressions**: other functions is normal expressions. Most of them have at least one operator.
-    Operators could be list in the [operator table](#operator-table).
+4. **Operator Expressions**: other expressions are operator expressions. normally them have at least one operator.
+    Operators will be list in the [operator table](#operator-table).
 
 #### xRe Macros
 
@@ -122,10 +122,10 @@ Character `^` is an attribute prefix. It means the xRe structure it prefixed wil
 
 #### Other Special Attributes
 
-The expression after the character "~" will be used as a suffix to the xRe structure. 
+The expression after the character "~" will be used as a suffix attribute to the xRe structure. 
 The match succeeds only if the expression is true, otherwise the match fails.
 
-## Internal Object
+## Internal Objects
 
 xRe grammar structures will be interpreted as xRe objects.
 Every kind of structure except escape will be interpreted called same name object.
