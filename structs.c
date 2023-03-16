@@ -68,8 +68,8 @@ xVoid releaseObj(xVoid *obj, Allocator * allocator) {
 }
 
 #define FREE_OBJ(_obj) \
-    if (_obj->regexp) { \
-        allocator->free(_obj->regexp); \
+    if ((_obj)->regexp) { \
+        allocator->free((_obj)->regexp); \
     } \
     allocator->free(_obj); \
 
