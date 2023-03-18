@@ -35,7 +35,7 @@ Match a group is match the xRe string in it.
 
 #### Union
 
-A `union` is some xRe strings divided with `|`. 
+A `union` is some xRe strings divided by `|`. 
 
 Match a union is try to match any xRe string of the union once, and take the longest result.
 
@@ -65,12 +65,12 @@ And there are some different expressions:
 1. **Const Expressions**: Const expression means can be computed and replaced with their value before match stage.
 2. **Labels**: Labels are those identifiers consistent with only lower letters, digits or underscore, and must start with lower letters.
    1. Using `=` to give an xRe structure a label, only can be using in non-expression and non-set structures.
-   2. Using `@` to apply the structure of a label in match program, only can be using in non-expression and non-set structures.
-   3. Using `#` get the order number of a label in label array, only can be using in expressions.
+   2. Using `@` to apply the structure of called label in match program, only can be using in non-expression and non-set structures.
+   3. Using `#` to apply a copy of structure of the called label, only can be using in expressions.
    4. Using `$` to apply the last matching result of a label, treat as a plain text structure,
       only can be using in non-expression and non-set structures.
 
-   When assign or call a label, the label must be bracketed with `<` and `>`.
+   When assign or call a label, the label must be bracketed with `<` and `>`, and can be suffixed with `:` followed some attributes.
 
    More details see [label](#label).
 3. **Functions**: Functions are those identifiers that stored in match program and can be called.
@@ -96,6 +96,7 @@ All xRe macros are:
 ### xRe Attributes
 
 xRe structures can have some extern attributes, them are parts of xRe grammar. 
+xRe attributes tell parser and match programming how to process the suffixed structure.
 XRe attributes was lead by `~`, bracketed with `<` and `>` and normally separated by `;`.
 
 xRe attributes determinate some special behaviors of parsing and matching.

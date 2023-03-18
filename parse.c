@@ -54,7 +54,7 @@ typedef enum {
     unionOR     = xReChar('|'),       // group union: '|'
     assign      = xReChar('='),       // group assign to variable: '='
     call        = xReChar('@'),       // call variable: '@'
-    orderOf     = xReChar('#'),       // order of variable: '#'
+    orderOf     = xReChar('#'),       // copy: of variable: '#'
     lastValue   = xReChar('$'),       // last matched result of variable: '￥'
     attribute   = xReChar('~'),       // attribute: '~'
     dot         = xReChar('.'),       // get label: '.'
