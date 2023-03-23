@@ -43,47 +43,78 @@ XReParser * xReParser(Allocator * _allocator) {
 
 
 typedef enum {
-    escape      = xReChar('\\'),     // escape char: '\'
-
-    beginG      = xReChar('('),      // begin of group : '('
-    endG        = xReChar(')'),      // end of group: ')'
-    beginS      = xReChar('['),      // begin of set: '['
-    endS        = xReChar(']'),      // end of set: ']'
-    beginC      = xReChar('{'),      // begin of count: '{'
-    endC        = xReChar('}'),      // end of count: '}'
-    beginV      = xReChar('<'),      // begin of expression: '<'
-    endV        = xReChar('>'),      // end of expression: '>'
-
-    rangeTO     = xReChar('-'),      // range to: '-'
-
-    comma       = xReChar(','),       // comma: ','
-    unionOR     = xReChar('|'),       // group union: '|'
-    assign      = xReChar('='),       // group assign to variable: '='
-    call        = xReChar('@'),       // call variable: '@'
-    orderOf     = xReChar('#'),       // copy: of variable: '#'
-    lastValue   = xReChar('$'),       // last matched result of variable: '￥'
-    attribute   = xReChar('~'),       // attribute: '~'
-    dot         = xReChar('.'),       // get label: '.'
-} meta_cat_t;
-
-xBool META_CAT_ARRAY[] = {
-        [escape]    = escape,
-        [beginG]    = beginG,
-        [endG]      = endG,
-        [beginS]    = beginS,
-        [endS]      = endS,
-        [beginC]    = beginC,
-        [endC]      = endC,
-        [beginV]    = beginV,
-        [endV]      = endV,
-        [rangeTO]   = rangeTO,
-        [comma]     = comma,
-        [unionOR]   = unionOR,
-        [assign]    = assign,
-        [call]      = call,
-        [orderOf]   = orderOf,
-        [attribute]  = attribute,
+    ssi_space = 0,
+    ssi_n = 1,
+    ssi_r = 2,
+    ssi_f = 3,
+    ssi_v = 4,
+    ssi_t = 5,
+    ssi_whitespace = 6,
+    ssi_non_whitespace = 7,
+    ssi_word = 8,
+    ssi_non_word = 9,
+} special_set_index_t;
+static Set SPECIAL_SET_ARRAY[] = {
+        { .n_plains = 1, .plain = xReString(" "), .is_inverse = false },
+        { .n_plains = 1, .plain = xReString("\n"), .is_inverse = false },
+        { .n_plains = 1, .plain = xReString("\r"), .is_inverse = false },
+        { .n_plains = 1, .plain = xReString("\f"), .is_inverse = false },
+        { .n_plains = 1, .plain = xReString("\v"), .is_inverse = false },
+        { .n_plains = 1, .plain = xReString("\t"), .is_inverse = false },
+        {.n_plains = 6, .plain = WHITESPACE, .is_inverse = false},
+        {.n_plains = 6, .plain = WHITESPACE, .is_inverse = true},
+        {.n_plains = 1, .plain = xReString("_"), .is_inverse = false,
+            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+        {.n_plains = 1, .plain = xReString("_"), .is_inverse = true,
+            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
 };
+
+Set *parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator) {
+    *offs = 0;
+    xReChar *sp = regexp;
+
+    if (sp[*offs] != xReChar('\\')) {
+        return nullptrof(Set);
+    }
+    (*offs)++;
+
+    switch (sp[*offs]) {
+        case xReChar('u'): {
+            // todo: unicode
+            return nullptrof(Set);
+        }
+        case xReChar('x'): {
+            // todo: unsigned hexadecimal integer
+            return nullptrof(Set);
+        }
+        case xReChar('c'): {
+            // todo: control character
+            return nullptrof(Set);
+        }
+        case xReChar(' '):
+            return &SPECIAL_SET_ARRAY[ssi_space];
+        case xReChar('n'):
+            return &SPECIAL_SET_ARRAY[ssi_n];
+        case xReChar('r'):
+            return &SPECIAL_SET_ARRAY[ssi_r];
+        case xReChar('f'):
+            return &SPECIAL_SET_ARRAY[ssi_f];
+        case xReChar('v'):
+            return &SPECIAL_SET_ARRAY[ssi_v];
+        case xReChar('t'):
+            return &SPECIAL_SET_ARRAY[ssi_t];
+        case xReChar('s'):
+            return &SPECIAL_SET_ARRAY[ssi_whitespace];
+        case xReChar('S'):
+            return &SPECIAL_SET_ARRAY[ssi_non_whitespace];
+        case xReChar('w'):
+            return &SPECIAL_SET_ARRAY[ssi_word];
+        case xReChar('W'):
+            return &SPECIAL_SET_ARRAY[ssi_non_word];
+        default:
+            return nullptrof(Set);
+    }
+}
 
 Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     *offs = 0;
@@ -252,6 +283,11 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             (*offs) ++;
             n_plains ++;
             continue;
+        }
+        if (sp[*offs] == escape) {
+            xuLong offset = 0;
+            Set * set = parseCrt(sp + *offs, &offset, allocator);
+
         }
         if (sp[*offs] == rangeTO) {
             while (n_ranges * sizeof(Range) > range_buffer_len) {
