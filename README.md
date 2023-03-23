@@ -16,6 +16,9 @@ xRe views escapes as plain characters, according to the [escape table](#escape-t
 Plain text(`sequence`) is strings have no xRe meta symbols. 
 xRe will do no operation for them at parse stage. 
 
+Whitespace characters like ` `, `\n`, `\t`, etc., i.e. all characters that `\s` in other kinds of regular expression, 
+will be viewed as breaking of plain text.
+
 Match a sequence is to match every character once in order, even exists duplicates.
 
 #### Set
