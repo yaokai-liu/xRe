@@ -3,12 +3,18 @@
 //
 
 #include "parse.h"
+#include "meta.h"
+#include "string.h"
 
 typedef struct XReParser {
     struct {
         xuLong position;
         xReChar message[256];
     } errorLog;
+    enum {
+        regular = 0,
+        arithmetic = 1,
+    } state;
     Allocator * allocator;
     Group * (* parse)(XReParser * parser, xReChar * regexp);
 } XReParser;
