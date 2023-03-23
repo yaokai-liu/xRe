@@ -171,7 +171,7 @@ Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator) {
                 // TODO: call.
                 break;
             }
-            case orderOf: {
+            case copy: {
                 // TODO: order.
                 break;
             }
