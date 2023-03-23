@@ -231,7 +231,7 @@ Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator) {
         return nullptrof(Sequence);
     }
     xuLong seq_buf_len = XRE_PARSE_ALLOCATE_SIZE;
-    while (sp[*offs] && (sp[*offs] >= lenof(META_CAT_ARRAY) || META_CAT_ARRAY[*sp] == 0)) {
+    while (sp[*offs] && hasChar(NON_PLAIN, sp[*offs]) != -1) {
         while ((*offs) * sizeof(xReChar) >= seq_buf_len) {
             seq_buf_len += XRE_PARSE_ALLOCATE_SIZE;
             void * new = allocator->realloc(value, seq_buf_len);
@@ -270,7 +270,7 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     Range * range_buffer = allocator->malloc(range_buffer_len);
     xuLong n_plains = 0, n_ranges = 0;
     while (sp[*offs] && sp[*offs] != endS) {
-        if (sp[*offs] >= lenof(META_CAT_ARRAY) || META_CAT_ARRAY[*sp] == 0) {
+        if (sp[*offs] && !hasChar(METAS, sp[*offs])) {
             while (n_plains * sizeof(xReChar) > plain_buffer_len) {
                 plain_buffer_len += XRE_PARSE_ALLOCATE_SIZE;
                 xVoid * new = allocator->realloc(plain_buffer, plain_buffer_len);
