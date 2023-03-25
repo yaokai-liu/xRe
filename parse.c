@@ -1,46 +1,22 @@
 //
-// Created by Yaokai Liu on 2023/2/18.
+// Created by Yaokai Liu on 2023/3/25.
 //
 
 #include "parse.h"
 #include "meta.h"
 #include "string.h"
 
-typedef struct XReParser {
-    struct {
-        xuLong position;
-        xReChar message[256];
-    } errorLog;
-    enum {
-        regular = 0,
-        arithmetic = 1,
-    } state;
-    Allocator * allocator;
-    Group * (* parse)(XReParser * parser, xReChar * regexp);
-} XReParser;
+static Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator);
+static Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
+static Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
+static Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator);
+static Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator);
+static Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
+static Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
 
-static Group * xReParser_parse(XReParser *parser, xReChar *regexp);
-
-Group * parse(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Group * parseGrp(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Group * parseUniRHS(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
-Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
-
-static Group * xReParser_parse(XReParser *parser, xReChar *regexp) {
-    return parse(regexp, &(parser->errorLog.position), parser->allocator);
+Group * xReProcessor_parse(XReProcessor *processor, xReChar *pattern) {
+    return parse(pattern, &(processor->errorLog.position), processor->allocator);
 }
-
-XReParser * xReParser(Allocator * _allocator) {
-    XReParser * parser = _allocator->calloc(1, sizeof(XReParser));
-    parser->allocator = _allocator;
-    parser->parse = xReParser_parse;
-    return parser;
-}
-
-
 
 typedef enum {
     ssi_space = 0,
@@ -64,9 +40,9 @@ static Set SPECIAL_SET_ARRAY[] = {
         {.n_plains = 6, .plain = WHITESPACE, .is_inverse = false},
         {.n_plains = 6, .plain = WHITESPACE, .is_inverse = true},
         {.n_plains = 1, .plain = xReString("_"), .is_inverse = false,
-            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+                .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
         {.n_plains = 1, .plain = xReString("_"), .is_inverse = true,
-            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+                .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
 };
 
 Set *parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator) {

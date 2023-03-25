@@ -1,20 +1,12 @@
 //
-// Created by Yaokai Liu on 2023/2/18.
+// Created by Yaokai Liu on 2023/3/25.
 //
 
 #ifndef X_PARSE_H
 #define X_PARSE_H
 
-#include "alloc.h"
-#include "structs.h"
+#include "xregexp.h"
 
-
-#ifndef XRE_PARSE_ALLOCATE_SIZE
-#define XRE_PARSE_ALLOCATE_SIZE   (32 * sizeof(xVoid *))
-#endif
-
-typedef struct XReParser XReParser;
-
-XReParser * xReParser(Allocator * allocator);
+Group * xReProcessor_parse(XReProcessor *processor, xReChar *pattern);
 
 #endif //X_PARSE_H
