@@ -3,6 +3,22 @@
 //
 
 #include "structs.h"
+#include "meta.h"
+
+Set SPECIAL_SET_ARRAY[] = {
+{ .n_plains = 1, .plain = xReString(" "), .is_inverse = false },
+{ .n_plains = 1, .plain = xReString("\n"), .is_inverse = false },
+{ .n_plains = 1, .plain = xReString("\r"), .is_inverse = false },
+{ .n_plains = 1, .plain = xReString("\f"), .is_inverse = false },
+{ .n_plains = 1, .plain = xReString("\v"), .is_inverse = false },
+{ .n_plains = 1, .plain = xReString("\t"), .is_inverse = false },
+{.n_plains = 6, .plain = WHITESPACE, .is_inverse = false},
+{.n_plains = 6, .plain = WHITESPACE, .is_inverse = true},
+{.n_plains = 1, .plain = xReString("_"), .is_inverse = false,
+.n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+{.n_plains = 1, .plain = xReString("_"), .is_inverse = true,
+.n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+};
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator) {
     Sequence * seq = allocator->calloc(1, sizeof(Sequence));
@@ -30,26 +46,32 @@ Set * createSet(xSize n_plains, xReChar * plain_buffer,
     return set;
 }
 
-Group * createGrp(xSize n_subs, ReObj ** sub_objects, Allocator * allocator) {
+Group *createGrp(xuInt n_branches, ObjArray branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
+                 Allocator *allocator) {
     Group * group = allocator->calloc(1, sizeof(Group));
     group->id = GRP;
-    group->n_subs = n_subs;
-    group->sub_objects = sub_objects;
+    group->n_branches = n_branches;
+    group->branches = branches;
+    group->n_groups = n_groups;
+    group->groups = groups;
+    group->n_labels = n_labels;
+    group->labels = labels;
     return group;
 }
 
-Union * createUni(Group * lhs, Group * rhs, Allocator * allocator) {
-    Union * uni = allocator->calloc(1, sizeof(Union));
-    uni->id = UNI;
-    uni->LHS = lhs;
-    uni->RHS = rhs;
-    return uni;
+Count * createCnt(Expression * expression[], ReObj * obj, Allocator * allocator) {
+    Count * count = allocator->calloc(1, sizeof(Count));
+    count->id = CNT;
+    count->min = expression[0];
+    count->max = expression[1];
+    count->step = expression[2];
+    count->obj = obj;
+    return count;
 }
 
 xVoid releaseSeq(Sequence *seq, Allocator * allocator);
 xVoid releaseSet(Set *set, Allocator * allocator);
 xVoid releaseGrp(Group *grp, Allocator * allocator);
-xVoid releaseUni(Union *uni, Allocator * allocator);
 xVoid releaseCnt(Count *cnt, Allocator * allocator);
 xVoid releaseExp(Expression *exp, Allocator * allocator);
 
@@ -58,7 +80,6 @@ xVoid releaseObj(xVoid *obj, Allocator * allocator) {
             [SEQ] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseSeq,
             [GRP] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseGrp,
             [SET] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseSet,
-            [UNI] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseUni,
             [CNT] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseCnt,
             [EXP] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseExp
     };
@@ -77,9 +98,11 @@ xVoid releaseSeq(Sequence *seq, Allocator * allocator) {
 }
 
 void releaseGrp(Group *grp, Allocator * allocator) {
-    for (xSize i = 0; i < grp->n_subs; i++)
-        releaseObj(grp->sub_objects[i], allocator);
-    allocator->free(grp->sub_objects);
+    for (xSize i = 0; i < grp->n_branches; i++)
+        clearObjArray(&grp->branches[i], allocator);
+    allocator->free(grp->branches);
+    allocator->free(grp->groups);
+    allocator->free(grp->labels);
     FREE_OBJ(grp)
 }
 
@@ -89,11 +112,6 @@ void releaseSet(Set *set, Allocator * allocator) {
     FREE_OBJ(set)
 }
 
-void releaseUni(Union *uni, Allocator * allocator) {
-    releaseObj(uni->LHS, allocator);
-    releaseGrp(uni->RHS, allocator);
-    FREE_OBJ(uni)
-}
 
 void releaseCnt(Count *cnt, Allocator * allocator) {
     releaseObj(cnt->obj, allocator);
@@ -104,4 +122,15 @@ void releaseExp(Expression *exp, Allocator * allocator) {
 
 }
 
+xVoid clearObjArray(ObjArray * array, Allocator * allocator) {
+    for (typeof(array->n_objs) i = 0; i < array->n_objs; i ++) {
+        if (((Set *) array->objects[i]) - SPECIAL_SET_ARRAY < lenof(SPECIAL_SET_ARRAY)) {
+            // means this object is static defined.
+            continue;
+        } else if (((Set *) array->objects[i]) - SPECIAL_SET_ARRAY < lenof(SPECIAL_SET_ARRAY))
+        releaseObj(array->objects[i], allocator);
+    }
+    allocator->free(array->objects);
+    array->n_objs = 0;
+}
 #undef FREE_OBJ

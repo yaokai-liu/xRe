@@ -7,6 +7,10 @@
 
 #include "xtypes.h"
 
+#ifndef XRE_BASIC_ALLOCATE_LENGTH
+#define XRE_BASIC_ALLOCATE_LENGTH   32
+#endif
+
 typedef struct {
     xVoid * (*malloc)(xuLong);
     xVoid * (*calloc)(xuLong, xSize);

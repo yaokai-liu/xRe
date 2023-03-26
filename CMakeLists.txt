@@ -11,6 +11,8 @@ add_compile_definitions("XCHAR_USING_ASCII")
 
 add_library(xRe
         char_t.c char_t.h
+        string.c string.h
+        "label.c" "label.h"
         structs.c structs.h
         parse.c parse.h
         match.c match.h
@@ -22,5 +24,6 @@ target_compile_options(xRe PRIVATE "-fno-builtin")
 target_link_options(xRe PRIVATE "-nodefaultlibs")
 target_link_options(xRe PRIVATE "-nostdlib")
 
-#add_executable(test_xRe test.c)
-#target_link_libraries(test_xRe PRIVATE xRe)
+add_executable(test_xRe test.c)
+target_link_libraries(test_xRe PRIVATE xRe)
+#target_compile_options(test_xRe PRIVATE "-fno-builtin")

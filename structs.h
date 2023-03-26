@@ -6,6 +6,7 @@
 #define X_STRUCTS_H
 
 #include "char_t.h"
+#include "label.h"
 
 typedef enum {
     SEQ, SET, GRP,
@@ -21,6 +22,11 @@ typedef enum {
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
 } ReObj;
+
+typedef struct ObjArray {
+    xSize n_objs;
+    ReObj ** objects;
+} ObjArray;
 
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
@@ -40,20 +46,18 @@ typedef struct {
     xSize n_ranges;
     Range * ranges;
 } Set;
+
+
 typedef struct Group Group;
 typedef struct Group {
     OBJ_BASIC_ATTRIBUTE
-    xSize n_subs;
-    ReObj ** sub_objects;
-    xuInt groups;
-
+    xuInt n_branches;
+    ObjArray * branches;
+    xuInt   n_groups;
+    Group ** groups;
+    xuInt   n_labels;
+    Label * labels;
 } Group;
-
-typedef struct {
-    OBJ_BASIC_ATTRIBUTE
-    Group *LHS;
-    Group *RHS;
-} Union;
 
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
@@ -64,6 +68,7 @@ typedef struct {
     OBJ_BASIC_ATTRIBUTE
     Expression * min;
     Expression * max;
+    Expression * step;
     ReObj * obj;
 } Count;
 
@@ -72,12 +77,28 @@ typedef struct {
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator);
 Set * createSet(xSize n_plains, xReChar * plain_buffer, xSize n_ranges, Range * range_buffer , Allocator * allocator);
-Group * createGrp(xSize n_subs, ReObj ** sub_objects, Allocator * allocator);
-Union * createUni(Group * lhs, Group * rhs, Allocator * allocator);
-Count * createCnt(Expression * min, Expression * max, ReObj *obj, Allocator * allocator);
+Group *createGrp(xuInt n_branches, ObjArray branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
+                 Allocator *allocator);
+Count * createCnt(Expression ** expression, ReObj *obj, Allocator * allocator);
 
 xVoid releaseObj(xVoid * obj, Allocator * allocator);
-
+xVoid clearObjArray(ObjArray * array, Allocator * allocator);
 #undef OBJ_BASIC_ATTRIBUTE
+
+typedef enum {
+    ssi_space = 0,
+    ssi_n = 1,
+    ssi_r = 2,
+    ssi_f = 3,
+    ssi_v = 4,
+    ssi_t = 5,
+    ssi_whitespace = 6,
+    ssi_non_whitespace = 7,
+    ssi_word = 8,
+    ssi_non_word = 9,
+} special_set_index_t;
+
+extern Set SPECIAL_SET_ARRAY[];
+
 
 #endif //X_STRUCTS_H

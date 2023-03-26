@@ -9,10 +9,6 @@
 #include "structs.h"
 
 
-#ifndef XRE_PARSE_ALLOCATE_SIZE
-#define XRE_PARSE_ALLOCATE_SIZE   (32 * sizeof(xVoid *))
-#endif
-
 typedef struct XReProcessor XReProcessor;
 
 typedef xInt (matcher)(const xReChar * source, xInt * length);
