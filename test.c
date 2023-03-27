@@ -3,6 +3,7 @@
 //
 
 #include "xregexp.h"
+#include "stdio.h"
 
 #define MEM_SIZE 4096
 
@@ -15,26 +16,26 @@ struct {
 xSize CURRENT_PTR = 0;
 xuLong ENTITY_COUNT = 0;
 
-xVoid * malloc(xuLong);
-xVoid * calloc(xuLong, xSize);
-xVoid * realloc(xVoid *, xuLong);
-xVoid free(xVoid *);
-xVoid memcpy(xVoid *src, xVoid *target, xuLong size);
+xVoid * t_malloc(xuLong);
+xVoid * t_calloc(xuLong, xSize);
+xVoid * t_realloc(xVoid *, xuLong);
+xVoid t_free(xVoid *);
+xVoid t_memcpy(xVoid *src, xVoid *target, xuLong size);
 
 int main() {
     Allocator allocator = {
-            .malloc = (xVoid *) malloc,
-            .calloc = (xVoid *) calloc,
-            .realloc = (xVoid *) realloc,
-            .free = (xVoid *) free
+            .malloc = t_malloc,
+            .calloc = t_calloc,
+            .realloc = t_realloc,
+            .free = t_free
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    Group * group = processor->parse(processor, xReString("aaa"));
-    allocator.free(group);
+    Group * group = processor->parse(processor, xReString("a{,}"));
+    releaseObj(group, &allocator);
     return 0;
 }
 
-xVoid * malloc(xuLong size) {
+xVoid * t_malloc(xuLong size) {
     if (size == 0) {
         return nullptrof(xVoid);
     }
@@ -46,25 +47,33 @@ xVoid * malloc(xuLong size) {
     ENTITY_TABLE[ENTITY_COUNT].addr = ptr;
     ENTITY_TABLE[ENTITY_COUNT].size = size;
     ENTITY_COUNT ++;
+    printf("Allocate: %lld, %lu. MEM_REMAIN = %llu\n", (xuByte *)ptr - MEMORY, size, MEM_SIZE - CURRENT_PTR);
     return ptr;
 }
-xVoid * calloc(xuLong count, xSize size) {
-    return malloc(count * size);
+xVoid * t_calloc(xuLong count, xSize size) {
+    return t_malloc(count * size);
 }
-xVoid * realloc(xVoid * src, xuLong size) {
-    xVoid * ptr =  malloc(size);
+xVoid * t_realloc(xVoid * src, xuLong size) {
+    xVoid * ptr =  t_malloc(size);
     if (ptr) {
-        memcpy(src, ptr, size);
-        free(src);
+        t_memcpy(src, ptr, size);
+        t_free(src);
     }
-
+    return ptr;
 }
 
-xVoid memcpy(xVoid *src, xVoid *target, xuLong size) {
+xVoid t_memcpy(xVoid *src, xVoid *target, xuLong size) {
     for (int i = 0; i < size; i ++) {
         ((xuByte *)target)[i] = ((xuByte *)src)[i];
     }
 }
 
-xVoid free(xVoid * src) {
+xVoid t_free(xVoid * src) {
+    for(int i = 0; i < ENTITY_COUNT; i ++) {
+        if (ENTITY_TABLE[i].addr == src) {
+            printf("Release: %lld, %llu\n", (xuByte *)src -MEMORY, ENTITY_TABLE[i].size);
+            ENTITY_TABLE[i].addr = nullptrof(xVoid);
+            ENTITY_TABLE[i].size = 0;
+        }
+    }
 }

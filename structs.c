@@ -6,18 +6,19 @@
 #include "meta.h"
 
 Set SPECIAL_SET_ARRAY[] = {
-{ .n_plains = 1, .plain = xReString(" "), .is_inverse = false },
-{ .n_plains = 1, .plain = xReString("\n"), .is_inverse = false },
-{ .n_plains = 1, .plain = xReString("\r"), .is_inverse = false },
-{ .n_plains = 1, .plain = xReString("\f"), .is_inverse = false },
-{ .n_plains = 1, .plain = xReString("\v"), .is_inverse = false },
-{ .n_plains = 1, .plain = xReString("\t"), .is_inverse = false },
-{.n_plains = 6, .plain = WHITESPACE, .is_inverse = false},
-{.n_plains = 6, .plain = WHITESPACE, .is_inverse = true},
-{.n_plains = 1, .plain = xReString("_"), .is_inverse = false,
-.n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
-{.n_plains = 1, .plain = xReString("_"), .is_inverse = true,
-.n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+[ssi_escape] = { .id = SET, .n_plains = 1, .plain = xReString("\\"), .is_inverse = false },
+[ssi_space] = { .id = SET, .n_plains = 1, .plain = xReString(" "), .is_inverse = false },
+[ssi_n] = { .id = SET, .n_plains = 1, .plain = xReString("\n"), .is_inverse = false },
+[ssi_r] = { .id = SET, .n_plains = 1, .plain = xReString("\r"), .is_inverse = false },
+[ssi_f] = { .id = SET, .n_plains = 1, .plain = xReString("\f"), .is_inverse = false },
+[ssi_v] = { .id = SET, .n_plains = 1, .plain = xReString("\v"), .is_inverse = false },
+[ssi_t] = { .id = SET, .n_plains = 1, .plain = xReString("\t"), .is_inverse = false },
+[ssi_whitespace] = { .id = SET, .n_plains = 6, .plain = WHITESPACE, .is_inverse = false},
+[ssi_non_whitespace] = { .id = SET, .n_plains = 6, .plain = WHITESPACE, .is_inverse = true},
+[ssi_word] = { .id = SET, .n_plains = 1, .plain = xReString("_"), .is_inverse = false,
+             .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+[ssi_non_word] = { .id = SET, .n_plains = 1, .plain = xReString("_"), .is_inverse = true,
+                 .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
 };
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator) {
@@ -76,15 +77,15 @@ xVoid releaseCnt(Count *cnt, Allocator * allocator);
 xVoid releaseExp(Expression *exp, Allocator * allocator);
 
 xVoid releaseObj(xVoid *obj, Allocator * allocator) {
-    static xVoid (*RELEASE_ARRAY[6])(xVoid *, xVoid (*)(xVoid *)) = {
-            [SEQ] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseSeq,
-            [GRP] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseGrp,
-            [SET] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseSet,
-            [CNT] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseCnt,
-            [EXP] = (xVoid (*)(xVoid *, xVoid (*)(xVoid *))) releaseExp
+    static xVoid (*RELEASE_ARRAY[6])(xVoid *, Allocator *) = {
+            [SEQ] = (xVoid (*)(xVoid *, Allocator *)) releaseSeq,
+            [GRP] = (xVoid (*)(xVoid *, Allocator *)) releaseGrp,
+            [SET] = (xVoid (*)(xVoid *, Allocator *)) releaseSet,
+            [CNT] = (xVoid (*)(xVoid *, Allocator *)) releaseCnt,
+            [EXP] = (xVoid (*)(xVoid *, Allocator *)) releaseExp
     };
     obj_type id = ((obj_type *) obj)[0];
-    RELEASE_ARRAY[id](obj, allocator->free);
+    RELEASE_ARRAY[id](obj, allocator);
 }
 
 #define FREE_OBJ(_obj) \
@@ -127,8 +128,10 @@ xVoid clearObjArray(ObjArray * array, Allocator * allocator) {
         if (((Set *) array->objects[i]) - SPECIAL_SET_ARRAY < lenof(SPECIAL_SET_ARRAY)) {
             // means this object is static defined.
             continue;
-        } else if (((Set *) array->objects[i]) - SPECIAL_SET_ARRAY < lenof(SPECIAL_SET_ARRAY))
-        releaseObj(array->objects[i], allocator);
+//        } else if () {
+        } else {
+            releaseObj(array->objects[i], allocator);
+        }
     }
     allocator->free(array->objects);
     array->n_objs = 0;

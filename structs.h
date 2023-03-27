@@ -10,7 +10,7 @@
 
 typedef enum {
     SEQ, SET, GRP,
-    UNI, CNT, EXP
+    CNT, EXP
 } obj_type;
 
 #define OBJ_BASIC_ATTRIBUTE \
@@ -86,16 +86,17 @@ xVoid clearObjArray(ObjArray * array, Allocator * allocator);
 #undef OBJ_BASIC_ATTRIBUTE
 
 typedef enum {
-    ssi_space = 0,
-    ssi_n = 1,
-    ssi_r = 2,
-    ssi_f = 3,
-    ssi_v = 4,
-    ssi_t = 5,
-    ssi_whitespace = 6,
-    ssi_non_whitespace = 7,
-    ssi_word = 8,
-    ssi_non_word = 9,
+    ssi_escape = 0,
+    ssi_space = 1,
+    ssi_n = 2,
+    ssi_r = 3,
+    ssi_f = 4,
+    ssi_v = 5,
+    ssi_t = 6,
+    ssi_whitespace = 7,
+    ssi_non_whitespace = 8,
+    ssi_word = 9,
+    ssi_non_word = 10,
 } special_set_index_t;
 
 extern Set SPECIAL_SET_ARRAY[];
