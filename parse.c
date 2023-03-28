@@ -9,7 +9,7 @@
 #define BUFFER_LEN XRE_BASIC_ALLOCATE_LENGTH
 
 static Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *offs, Allocator *allocator);
-static Set *parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator);
+static ReObj * parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator);
 static Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
 static Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
 static Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
@@ -19,63 +19,35 @@ Group * xReProcessor_parse(XReProcessor *processor, xReChar *pattern) {
     return parse(pattern, 0, xReChar('\0'), &(processor->errorLog.position), processor->allocator);
 }
 
-Set *parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator) {
+ReObj * parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar *sp = regexp;
 
     if (sp[*offs] != xReChar('\\')) {
-        return nullptrof(Set);
+        return nullptrof(ReObj);
     }
     (*offs)++;
+
+    xInt i = 0;
+    if ((i = hasChar(SINGLE_ESCAPE, sp[*offs])) >= 0) {
+        return SPECIAL_OBJ_ARRAY[i];
+    }
 
     switch (sp[*offs]) {
         case xReChar('u'): {
             // todo: unicode
-            return nullptrof(Set);
+            return nullptrof(ReObj);
         }
         case xReChar('x'): {
             // todo: unsigned hexadecimal integer
-            return nullptrof(Set);
+            return nullptrof(ReObj);
         }
         case xReChar('c'): {
             // todo: control character
-            return nullptrof(Set);
+            return nullptrof(ReObj);
         }
-        case xReChar('\\'):
-            (*offs) ++;
-            return &SPECIAL_SET_ARRAY[ssi_escape];
-        case xReChar(' '):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_space];
-        case xReChar('n'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_n];
-        case xReChar('r'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_r];
-        case xReChar('f'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_f];
-        case xReChar('v'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_v];
-        case xReChar('t'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_t];
-        case xReChar('s'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_whitespace];
-        case xReChar('S'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_non_whitespace];
-        case xReChar('w'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_word];
-        case xReChar('W'):
-            (*offs)++;
-            return &SPECIAL_SET_ARRAY[ssi_non_word];
         default:
-            return nullptrof(Set);
+            return nullptrof(ReObj);
     }
 }
 
@@ -135,13 +107,6 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
             }
             case beginC: {
                 Count * cnt = nullptrof(Count);
-                Expression ** expressions = parseCntExp(sp + *offs, &offset, allocator);
-                if (expressions) {
-                    (branches[n_bch].n_objects) --;
-                    obj = branches[n_bch].objects[branches[n_bch].n_objects];
-                    cnt = createCnt(expressions, obj, allocator);
-                }
-                obj = cnt;
                 break;
             }
             case unionOR: {
@@ -177,7 +142,7 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                 // TODO: match condition.
             }
             default:
-                while (hasChar(WHITESPACE, sp[*offs])) {
+                while (hasChar(WHITESPACE, sp[*offs]) >= 0) {
                     (*offs) ++;
                 }
                 obj = parseSeq(sp + *offs, &offset, allocator);
@@ -244,7 +209,7 @@ Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     xuLong seq_buf_len = BUFFER_LEN;
     xReChar * value = allocator->malloc(seq_buf_len * sizeof(xReChar));
 
-    while (sp[*offs] && !hasChar(NON_PLAIN, sp[*offs])) {
+    while (sp[*offs] && hasChar(NON_PLAIN, sp[*offs]) < 0) {
         while (*offs >= seq_buf_len) {
             seq_buf_len += BUFFER_LEN;
             xVoid * new = allocator->realloc(value, seq_buf_len * sizeof(xReChar));
@@ -257,7 +222,7 @@ Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator) {
         (*offs) ++;
     }
     if (*offs == 0) {
-        if (!hasChar(WHITESPACE, sp[*offs]))
+        if (hasChar(WHITESPACE, sp[*offs]) < 0)
             goto __failed_parse_sequence;
     }
     xVoid * new = allocator->realloc(value, ((*offs) + 1)* sizeof(xReChar));
@@ -286,26 +251,12 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     Range * range_buffer = allocator->malloc(range_buffer_len * sizeof(Range));
     xuLong n_plains = 0, n_ranges = 0;
     while (sp[*offs] && sp[*offs] != endS) {
-        if (sp[*offs] && !hasChar(METAS, sp[*offs])) {
-            while (n_plains  >= plain_buffer_len) {
-                plain_buffer_len += BUFFER_LEN;
-                xVoid * new = allocator->realloc(plain_buffer, plain_buffer_len * sizeof(xReChar));
-                if (!new) {
-                    goto __failed_parse_set;
-                }
-                plain_buffer = new;
-            }
-            plain_buffer[n_plains] = sp[(*offs)];
-            (*offs) ++;
-            n_plains ++;
-            continue;
-        }
-        if (sp[*offs] == escape) {
-            xuLong offset = 0;
-            Set * set = parseCrt(sp + *offs, &offset, allocator);
-            for (int i = 0; i < set->n_plains; i ++) {
-                if (!hasChar(plain_buffer, set->plains[i])) {
-                    while (n_plains  >= plain_buffer_len) {
+        switch (sp[*offs]) {
+            case escape:{
+                xuLong offset = 0;
+                ReObj * obj = parseCrt(sp + *offs, &offset, allocator);
+                if (obj->id == SEQ) {
+                    while (n_plains + ((Sequence *)obj)->len >= plain_buffer_len) {
                         plain_buffer_len += BUFFER_LEN;
                         xVoid * new = allocator->realloc(plain_buffer, plain_buffer_len * sizeof(xReChar));
                         if (!new) {
@@ -313,21 +264,21 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
                         }
                         plain_buffer = new;
                     }
-                    plain_buffer[n_plains] = set->plains[i];
-                    n_plains ++;
-                }
-            }
-            for (int i = 0; i < set->n_ranges; i ++) {
-                xBool not_include_range = true;
-                for (int j = 0; j < n_ranges; j ++) {
-                    if (set->ranges[i].left >= range_buffer[j].left
-                     && set->ranges[i].right >= range_buffer[j].right) {
-                        not_include_range = false;
-                        break;
+                    allocator->memcpy(((Sequence *)obj)->value, plain_buffer + n_plains, ((Sequence *)obj)->len);
+                    n_plains += ((Sequence *)obj)->len;
+                } else if (obj->id == SET) {
+                    while (n_plains + ((Set *)obj)->n_plains >= plain_buffer_len) {
+                        plain_buffer_len += BUFFER_LEN;
+                        xVoid * new = allocator->realloc(plain_buffer, plain_buffer_len * sizeof(xReChar));
+                        if (!new) {
+                            goto __failed_parse_set;
+                        }
+                        plain_buffer = new;
                     }
-                }
-                if (!not_include_range) {
-                    while (n_ranges >= range_buffer_len) {
+                    allocator->memcpy(((Set *)obj)->plains, plain_buffer + n_plains, ((Set *)obj)->n_plains);
+                    n_plains += ((Set *)obj)->n_plains;
+
+                    while (n_ranges + ((Set *)obj)->n_ranges >= range_buffer_len) {
                         range_buffer_len += BUFFER_LEN;
                         xVoid * new = allocator->realloc(range_buffer, range_buffer_len * sizeof(Range));
                         if (!new) {
@@ -335,34 +286,50 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
                         }
                         range_buffer = new;
                     }
-                    range_buffer[n_ranges] = set->ranges[i];
-                    n_ranges ++;
+                    allocator->memcpy(((Set *)obj)->ranges, range_buffer + n_ranges, ((Set *)obj)->n_ranges);
+                    n_ranges += ((Set *)obj)->n_ranges;
                 }
+                // set from crt can not be free.
+                break;
             }
-            // set from crt can not be free.
-        }
-        if (sp[*offs] == rangeTO) {
-            (*offs) ++;
-            if (!sp[(*offs)] || (sp[(*offs)] != escape && hasChar(METAS, sp[(*offs)]))) {
-                goto __failed_parse_set;
-            }
-            while (n_ranges >= range_buffer_len) {
-                range_buffer_len += BUFFER_LEN;
-                xVoid * new = allocator->realloc(range_buffer, range_buffer_len * sizeof(Range));
-                if (!new) {
+            case rangeTO: {
+                (*offs) ++;
+                if (!sp[(*offs)] || (sp[(*offs)] != escape && hasChar(METAS, sp[(*offs)]) >= 0)) {
                     goto __failed_parse_set;
                 }
-                range_buffer = new;
+                while (n_ranges >= range_buffer_len) {
+                    range_buffer_len += BUFFER_LEN;
+                    xVoid * new = allocator->realloc(range_buffer, range_buffer_len * sizeof(Range));
+                    if (!new) {
+                        goto __failed_parse_set;
+                    }
+                    range_buffer = new;
+                }
+                n_plains --;
+                range_buffer[n_ranges].left = plain_buffer[n_plains];
+                plain_buffer[n_plains] = 0;
+                range_buffer[n_ranges].right = sp[(*offs)];
+                n_ranges ++;
+                (*offs) ++;
+                break;
             }
-            n_plains --;
-            range_buffer[n_ranges].left = plain_buffer[n_plains];
-            plain_buffer[n_plains] = 0;
-            range_buffer[n_ranges].right = sp[(*offs)];
-            n_ranges ++;
-            (*offs) ++;
-            continue;
+            case dot: {
+                break;
+            }
+            default: {
+                while (n_plains >= plain_buffer_len) {
+                    plain_buffer_len += BUFFER_LEN;
+                    xVoid * new = allocator->realloc(plain_buffer, plain_buffer_len * sizeof(xReChar));
+                    if (!new) {
+                        goto __failed_parse_set;
+                    }
+                    plain_buffer = new;
+                }
+                plain_buffer[n_plains] = sp[(*offs)];
+                (*offs) ++;
+                n_plains ++;
+            }
         }
-        goto __failed_parse_set;
     }
     if (sp[*offs] != endS) {
         goto __failed_parse_set;
@@ -392,6 +359,12 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
 }
 
 Expression ** parseCntExp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
+    *offs = 0;
+    xReChar * sp = regexp;
+    if (!sp[0] || sp[0] != beginS) {
+        return nullptrof(Expression *);
+    }
+    (*offs)++;
 
 }
 

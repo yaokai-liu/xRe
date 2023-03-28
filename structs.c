@@ -5,20 +5,85 @@
 #include "structs.h"
 #include "meta.h"
 
+Sequence SPECIAL_SEQ_ARRAY[] = {
+    { .id = SEQ, .value = xReString("\n"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("\r"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("\f"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("\v"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("\t"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString(" "), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("("), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString(")"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("["), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("]"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("<"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString(">"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("{"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("}"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("\\"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("|"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("@"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("#"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("$"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("~"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString(":"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("="), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("+"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("-"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("*"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("/"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("?"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("!"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("^"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("."), .is_inverse = true, .only_match = false },
+};
+
 Set SPECIAL_SET_ARRAY[] = {
-[ssi_escape] = { .id = SET, .n_plains = 1, .plains = xReString("\\"), .is_inverse = false },
-[ssi_space] = { .id = SET, .n_plains = 1, .plains = xReString(" "), .is_inverse = false },
-[ssi_n] = { .id = SET, .n_plains = 1, .plains = xReString("\n"), .is_inverse = false },
-[ssi_r] = { .id = SET, .n_plains = 1, .plains = xReString("\r"), .is_inverse = false },
-[ssi_f] = { .id = SET, .n_plains = 1, .plains = xReString("\f"), .is_inverse = false },
-[ssi_v] = { .id = SET, .n_plains = 1, .plains = xReString("\v"), .is_inverse = false },
-[ssi_t] = { .id = SET, .n_plains = 1, .plains = xReString("\t"), .is_inverse = false },
-[ssi_whitespace] = { .id = SET, .n_plains = 6, .plains = WHITESPACE, .is_inverse = false},
-[ssi_non_whitespace] = { .id = SET, .n_plains = 6, .plains = WHITESPACE, .is_inverse = true},
-[ssi_word] = { .id = SET, .n_plains = 1, .plains = xReString("_"), .is_inverse = false,
-             .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
-[ssi_non_word] = { .id = SET, .n_plains = 1, .plains = xReString("_"), .is_inverse = true,
-                 .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+    { .id = SET, .n_plains = 6, .plains = WHITESPACE, .only_match = false, .is_inverse = false},
+    { .id = SET, .n_plains = 6, .plains = WHITESPACE, .only_match = false, .is_inverse = true},
+    { .id = SET, .n_plains = 1, .plains = xReString("_"), .only_match = false, .is_inverse = false,
+            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+    { .id = SET, .n_plains = 1, .plains = xReString("_"), .only_match = false, .is_inverse = true,
+            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+};
+
+ReObj * SPECIAL_OBJ_ARRAY[] = {
+    // sequence
+    (ReObj *) &SPECIAL_SEQ_ARRAY[0],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[1],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[2],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[3],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[4],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[5],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[6],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[7],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[8],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[9],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[10],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[11],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[12],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[13],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[14],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[15],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[16],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[17],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[18],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[19],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[20],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[21],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[22],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[23],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[24],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[25],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[26],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[27],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[28],
+    (ReObj *) &SPECIAL_SEQ_ARRAY[29],
+    // set
+    (ReObj *) &SPECIAL_SET_ARRAY[0],
+    (ReObj *) &SPECIAL_SET_ARRAY[1],
+    (ReObj *) &SPECIAL_SET_ARRAY[2],
+    (ReObj *) &SPECIAL_SET_ARRAY[3],
 };
 
 int genSeqRegexp(Sequence *seq, xReChar *regexp, Allocator *allocator);
@@ -122,17 +187,25 @@ void releaseExp(Expression *exp, Allocator * allocator) {
 }
 
 xVoid clearObjArray(ObjArray * array, Allocator * allocator) {
+#define IS_STATIC__(_obj, _cat) \
+     (  ((xVoid *) _obj) - (xVoid *) SPECIAL_##_cat##_ARRAY < lenof(SPECIAL_##_cat##_ARRAY) \
+     && ((xVoid *) _obj) >=(xVoid *) SPECIAL_##_cat##_ARRAY)
+#define IS_STATIC(_obj) \
+    (  IS_STATIC__(array->objects[i], SET) \
+    || IS_STATIC__(array->objects[i], SEQ))
+
     for (typeof(array->n_objects) i = 0; i < array->n_objects; i ++) {
-        if (((Set *) array->objects[i]) - SPECIAL_SET_ARRAY < lenof(SPECIAL_SET_ARRAY)) {
+        if (IS_STATIC(array->objects[i])) {
             // means this object is static defined.
             continue;
-//        } else if () {
         } else {
             releaseObj(array->objects[i], allocator);
         }
     }
     allocator->free(array->objects);
     array->n_objects = 0;
+#undef IS_STATIC__
+#undef IS_STATIC
 }
 #undef FREE_OBJ
 

@@ -7,9 +7,4 @@
 
 #include "char_t.h"
 
-typedef struct LabelEntity {
-    xReChar     key[8];
-    xVoid *     value;
-} Label;
-
 #endif //X_LABEL_H

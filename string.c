@@ -4,12 +4,12 @@
 
 #include "string.h"
 
-xBool hasChar(const xReChar *_string, xReChar _chr) {
+xInt hasChar(const xReChar *_string, xReChar _chr) {
     for (int i = 0; _string[i] != xReChar('\0'); i++) {
         if (_chr == _string[i])
-            return true;
+            return i;
     }
-    return false;
+    return -1;
 }
 
 xBool strcmp(const xReChar * _str1, const xReChar * _str2) {

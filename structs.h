@@ -47,6 +47,13 @@ typedef struct {
     Range * ranges;
 } Set;
 
+typedef struct {
+    xReChar     key[8];
+    xVoid *     value;
+    xReChar *   last;
+    xInt        last_len;
+} Label;
+
 
 typedef struct Group Group;
 typedef struct Group {
@@ -57,6 +64,8 @@ typedef struct Group {
     ObjArray * branches;
     Group ** groups;
     Label * labels;
+    xReChar *   last;
+    xInt        last_len;
 } Group;
 
 typedef struct {
@@ -85,21 +94,7 @@ xVoid releaseObj(xVoid * obj, Allocator * allocator);
 xVoid clearObjArray(ObjArray * array, Allocator * allocator);
 #undef OBJ_BASIC_ATTRIBUTE
 
-typedef enum {
-    ssi_escape = 0,
-    ssi_space = 1,
-    ssi_n = 2,
-    ssi_r = 3,
-    ssi_f = 4,
-    ssi_v = 5,
-    ssi_t = 6,
-    ssi_whitespace = 7,
-    ssi_non_whitespace = 8,
-    ssi_word = 9,
-    ssi_non_word = 10,
-} special_set_index_t;
-
-extern Set SPECIAL_SET_ARRAY[];
+extern ReObj * SPECIAL_OBJ_ARRAY[];
 
 
 #endif //X_STRUCTS_H

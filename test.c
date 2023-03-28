@@ -31,7 +31,7 @@ int main() {
             .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    Group * group = processor->parse(processor, xReString("!a b"));
+    Group * group = processor->parse(processor, xReString("\\{\\}\\(\\)\\[\\]\\+\\-\\*\\/"));
     releaseObj(group, &allocator);
     return 0;
 }
@@ -48,7 +48,7 @@ xVoid * t_malloc(xSize size) {
     ENTITY_TABLE[ENTITY_COUNT].addr = ptr;
     ENTITY_TABLE[ENTITY_COUNT].size = size;
     ENTITY_COUNT ++;
-    printf("Allocate: %lld, %llu. MEM_REMAIN = %llu\n", (xuByte *)ptr - MEMORY, size, MEM_SIZE - CURRENT_PTR);
+    printf("Allocate: %lld, %llu. MEM_USED = %llu\n", (xuByte *)ptr - MEMORY, size, CURRENT_PTR);
     return ptr;
 }
 xVoid * t_calloc(xSize count, xSize size) {

@@ -7,7 +7,7 @@
 
 #include "char_t.h"
 
-xBool hasChar(const xReChar * _string, xReChar _chr);
+xInt hasChar(const xReChar * _string, xReChar _chr);
 
 
 #endif //X_STRING_H

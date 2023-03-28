@@ -28,18 +28,24 @@ typedef enum {
     copy        = xReChar('#'),       // copy: of variable: '#'
     lastValue   = xReChar('$'),       // last matched result of variable: '$'
     attribute   = xReChar('~'),       // attribute: '~'
-    dot         = xReChar('.'),       // get label: '.'
+
+    dot         = xReChar('.'),       // macro or get label: '.'
+    plus        = xReChar('+'),       // macro: '+'
+    star        = xReChar('*'),       // macro: '*'
+    quesMark    = xReChar('?'),       // macro: '?'
 
     only_match  = xReChar('!'),       // only match but not capture: '!'
     is_inverse  = xReChar('^'),       // inverse match: '^'
 } meta_cat_t;
 
-#define METAS xReString("()[]{}<>\\|@#$~:=+-*/?.")
+#define METAS xReString("()[]{}<>\\|@#$~:=+-*/?!^.")
 
 #define WHITESPACE xReString("\n\r\f\v\t ")
 
 // NON_PLAIN = METAS + WHITESPACE
-#define NON_PLAIN xReString("()[]{}<>\\|@#$~:=+-*/?.\n\r\f\v\t ")
+#define NON_PLAIN xReString("\n\r\f\v\t ()[]{}<>\\|@#$~:=+-*/?!^.")
+
+#define SINGLE_ESCAPE xReString("nrfvt ()[]{}<>\\|@#$~:=+-*/?!^.sSwW")
 
 
 #endif //X_META_H
