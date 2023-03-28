@@ -31,8 +31,10 @@ int main() {
             .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    Group * group = processor->parse(processor, xReString("\\{\\}\\(\\)\\[\\]\\+\\-\\*\\/"));
-    releaseObj(group, &allocator);
+    xReChar * test_str = xReString("");
+    Group * group = processor->parse(processor, test_str);
+    if (group)
+        releaseObj(group, &allocator);
     return 0;
 }
 
@@ -72,7 +74,7 @@ xVoid t_memcpy(xVoid *src, xVoid *target, xSize size) {
 xVoid t_free(xVoid * src) {
     for(int i = 0; i < ENTITY_COUNT; i ++) {
         if (ENTITY_TABLE[i].addr == src) {
-            printf("Release: %lld, %llu\n", (xuByte *)src -MEMORY, ENTITY_TABLE[i].size);
+            printf("Release: %lld, %llu\n", (xuByte *)src - MEMORY, ENTITY_TABLE[i].size);
             ENTITY_TABLE[i].addr = nullptrof(xVoid);
             ENTITY_TABLE[i].size = 0;
         }

@@ -16,10 +16,10 @@ Sequence SPECIAL_SEQ_ARRAY[] = {
     { .id = SEQ, .value = xReString(")"), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("["), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("]"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("<"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString(">"), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("{"), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("}"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString("<"), .is_inverse = false, .only_match = false },
+    { .id = SEQ, .value = xReString(">"), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("\\"), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("|"), .is_inverse = false, .only_match = false },
     { .id = SEQ, .value = xReString("@"), .is_inverse = false, .only_match = false },
@@ -188,17 +188,15 @@ void releaseExp(Expression *exp, Allocator * allocator) {
 
 xVoid clearObjArray(ObjArray * array, Allocator * allocator) {
 #define IS_STATIC__(_obj, _cat) \
-     (  ((xVoid *) _obj) - (xVoid *) SPECIAL_##_cat##_ARRAY < lenof(SPECIAL_##_cat##_ARRAY) \
-     && ((xVoid *) _obj) >=(xVoid *) SPECIAL_##_cat##_ARRAY)
+     (  ((xVoid *) _obj) - (xVoid *) SPECIAL_##_cat##_ARRAY < sizeof(SPECIAL_##_cat##_ARRAY) \
+     && ((xVoid *) _obj) >=(xVoid *) SPECIAL_##_cat##_ARRAY \
+     && _obj->id == _cat)
 #define IS_STATIC(_obj) \
     (  IS_STATIC__(array->objects[i], SET) \
     || IS_STATIC__(array->objects[i], SEQ))
 
     for (typeof(array->n_objects) i = 0; i < array->n_objects; i ++) {
-        if (IS_STATIC(array->objects[i])) {
-            // means this object is static defined.
-            continue;
-        } else {
+        if (!IS_STATIC(array->objects[i])) {
             releaseObj(array->objects[i], allocator);
         }
     }

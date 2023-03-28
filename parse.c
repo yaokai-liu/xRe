@@ -30,6 +30,7 @@ ReObj * parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator) {
 
     xInt i = 0;
     if ((i = hasChar(SINGLE_ESCAPE, sp[*offs])) >= 0) {
+        (*offs) ++;
         return SPECIAL_OBJ_ARRAY[i];
     }
 
