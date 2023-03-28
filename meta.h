@@ -29,6 +29,9 @@ typedef enum {
     lastValue   = xReChar('$'),       // last matched result of variable: '￥'
     attribute   = xReChar('~'),       // attribute: '~'
     dot         = xReChar('.'),       // get label: '.'
+
+    only_match  = xReChar('!'),       // only match but not capture: '!'
+    is_inverse  = xReChar('^'),       // inverse match: '^'
 } meta_cat_t;
 
 #define METAS xReString("()[]{}<>\\|@#$~:=+-*/?.")

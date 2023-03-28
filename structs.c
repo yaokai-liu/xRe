@@ -28,8 +28,6 @@ Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator) {
         return nullptrof(Sequence);
     }
     seq->id = SEQ;
-    seq->is_inverse = false;
-    seq->only_parse = false;
     seq->len = len;
     seq->value = value;
     return seq;

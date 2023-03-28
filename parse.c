@@ -104,10 +104,21 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
     xuLong n_labels = 0, label_arr_len = BUFFER_LEN;
     Label * labels = allocator->malloc(label_arr_len * sizeof(Label));
 
+    xBool _only_match = false; xBool _is_inverse = false;
     while (sp[*offs] && sp[*offs] != _end_char) {
         xVoid * obj = nullptrof(xVoid);
         xuLong offset = 0;
         switch (sp[*offs]) {
+            case only_match:{
+                (*offs) ++;
+                _only_match = true;
+                continue;
+            }
+            case is_inverse:{
+                (*offs) ++;
+                _is_inverse = true;
+                continue;
+            }
             case escape: {
                 obj = parseCrt(sp + *offs, &offset, allocator);
                 break;
@@ -173,6 +184,10 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
         if (!obj) {
             goto __failed_parse_group;
         }
+        ((ReObj *)obj)->only_match = _only_match;
+        ((ReObj *)obj)->is_inverse = _is_inverse;
+        _only_match = false; _is_inverse = false;
+
         if (branches[n_bch - 1].n_objs >= obj_arr_len) {
             obj_arr_len += BUFFER_LEN;
             xVoid * new = allocator->realloc(branches[n_bch - 1].objects, obj_arr_len * sizeof(ReObj *) );

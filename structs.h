@@ -15,7 +15,7 @@ typedef enum {
 
 #define OBJ_BASIC_ATTRIBUTE \
     obj_type id; \
-    xBool only_parse; \
+    xBool only_match; \
     xBool is_inverse; \
     xReChar *regexp; \
 
