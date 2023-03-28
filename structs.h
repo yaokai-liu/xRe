@@ -17,14 +17,14 @@ typedef enum {
     obj_type id; \
     xBool only_match; \
     xBool is_inverse; \
-    xReChar *regexp; \
+
 
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
 } ReObj;
 
 typedef struct ObjArray {
-    xSize n_objs;
+    xuInt n_objects;
     ReObj ** objects;
 } ObjArray;
 
@@ -41,9 +41,9 @@ typedef struct Range {
 
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
-    xSize n_plains;
-    xReChar *plain;
-    xSize n_ranges;
+    xuInt n_plains;
+    xuInt n_ranges;
+    xReChar *plains;
     Range * ranges;
 } Set;
 
@@ -52,10 +52,10 @@ typedef struct Group Group;
 typedef struct Group {
     OBJ_BASIC_ATTRIBUTE
     xuInt n_branches;
-    ObjArray * branches;
     xuInt   n_groups;
-    Group ** groups;
     xuInt   n_labels;
+    ObjArray * branches;
+    Group ** groups;
     Label * labels;
 } Group;
 
@@ -76,7 +76,7 @@ typedef struct {
 #include "alloc.h"
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator);
-Set * createSet(xSize n_plains, xReChar * plain_buffer, xSize n_ranges, Range * range_buffer , Allocator * allocator);
+Set * createSet(xuInt n_plains, xReChar * plain_buffer, xuInt n_ranges, Range * range_buffer , Allocator * allocator);
 Group *createGrp(xuInt n_branches, ObjArray branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
                  Allocator *allocator);
 Count * createCnt(Expression ** expression, ReObj *obj, Allocator * allocator);

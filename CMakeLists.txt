@@ -7,7 +7,8 @@ set(CMAKE_C_STANDARD 23)
 
 add_compile_definitions("XTYPES_USING_STDC_TYPE")
 add_compile_definitions("XDEF_USING_C_STD_DEF")
-add_compile_definitions("XCHAR_USING_ASCII")
+add_compile_definitions("XRE_CHAR_USING_ASCII")
+add_compile_definitions("XRE_DEBUG")
 
 add_library(xRe
         char_t.c char_t.h

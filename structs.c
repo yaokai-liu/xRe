@@ -6,20 +6,23 @@
 #include "meta.h"
 
 Set SPECIAL_SET_ARRAY[] = {
-[ssi_escape] = { .id = SET, .n_plains = 1, .plain = xReString("\\"), .is_inverse = false },
-[ssi_space] = { .id = SET, .n_plains = 1, .plain = xReString(" "), .is_inverse = false },
-[ssi_n] = { .id = SET, .n_plains = 1, .plain = xReString("\n"), .is_inverse = false },
-[ssi_r] = { .id = SET, .n_plains = 1, .plain = xReString("\r"), .is_inverse = false },
-[ssi_f] = { .id = SET, .n_plains = 1, .plain = xReString("\f"), .is_inverse = false },
-[ssi_v] = { .id = SET, .n_plains = 1, .plain = xReString("\v"), .is_inverse = false },
-[ssi_t] = { .id = SET, .n_plains = 1, .plain = xReString("\t"), .is_inverse = false },
-[ssi_whitespace] = { .id = SET, .n_plains = 6, .plain = WHITESPACE, .is_inverse = false},
-[ssi_non_whitespace] = { .id = SET, .n_plains = 6, .plain = WHITESPACE, .is_inverse = true},
-[ssi_word] = { .id = SET, .n_plains = 1, .plain = xReString("_"), .is_inverse = false,
+[ssi_escape] = { .id = SET, .n_plains = 1, .plains = xReString("\\"), .is_inverse = false },
+[ssi_space] = { .id = SET, .n_plains = 1, .plains = xReString(" "), .is_inverse = false },
+[ssi_n] = { .id = SET, .n_plains = 1, .plains = xReString("\n"), .is_inverse = false },
+[ssi_r] = { .id = SET, .n_plains = 1, .plains = xReString("\r"), .is_inverse = false },
+[ssi_f] = { .id = SET, .n_plains = 1, .plains = xReString("\f"), .is_inverse = false },
+[ssi_v] = { .id = SET, .n_plains = 1, .plains = xReString("\v"), .is_inverse = false },
+[ssi_t] = { .id = SET, .n_plains = 1, .plains = xReString("\t"), .is_inverse = false },
+[ssi_whitespace] = { .id = SET, .n_plains = 6, .plains = WHITESPACE, .is_inverse = false},
+[ssi_non_whitespace] = { .id = SET, .n_plains = 6, .plains = WHITESPACE, .is_inverse = true},
+[ssi_word] = { .id = SET, .n_plains = 1, .plains = xReString("_"), .is_inverse = false,
              .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
-[ssi_non_word] = { .id = SET, .n_plains = 1, .plain = xReString("_"), .is_inverse = true,
+[ssi_non_word] = { .id = SET, .n_plains = 1, .plains = xReString("_"), .is_inverse = true,
                  .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
 };
+
+int genSeqRegexp(Sequence *seq, xReChar *regexp, Allocator *allocator);
+int genSetRegexp(Set *set, xReChar *regexp, Allocator *allocator);
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator) {
     Sequence * seq = allocator->calloc(1, sizeof(Sequence));
@@ -33,13 +36,13 @@ Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator) {
     return seq;
 }
 
-Set * createSet(xSize n_plains, xReChar * plain_buffer,
-                xSize n_ranges, Range * range_buffer,
+Set * createSet(xuInt n_plains, xReChar * plain_buffer,
+                xuInt n_ranges, Range * range_buffer,
                 Allocator * allocator) {
     Set *set = allocator->calloc(1, sizeof(Set));
     set->id = SET;
     set->n_plains = n_plains;
-    set->plain = plain_buffer;
+    set->plains = plain_buffer;
     set->n_ranges = n_ranges;
     set->ranges = range_buffer;
     return set;
@@ -87,9 +90,6 @@ xVoid releaseObj(xVoid *obj, Allocator * allocator) {
 }
 
 #define FREE_OBJ(_obj) \
-    if ((_obj)->regexp) { \
-        allocator->free((_obj)->regexp); \
-    } \
     allocator->free(_obj); \
 
 xVoid releaseSeq(Sequence *seq, Allocator * allocator) {
@@ -107,7 +107,7 @@ void releaseGrp(Group *grp, Allocator * allocator) {
 
 void releaseSet(Set *set, Allocator * allocator) {
     allocator->free(set->ranges);
-    allocator->free(set->plain);
+    allocator->free(set->plains);
     FREE_OBJ(set)
 }
 
@@ -122,7 +122,7 @@ void releaseExp(Expression *exp, Allocator * allocator) {
 }
 
 xVoid clearObjArray(ObjArray * array, Allocator * allocator) {
-    for (typeof(array->n_objs) i = 0; i < array->n_objs; i ++) {
+    for (typeof(array->n_objects) i = 0; i < array->n_objects; i ++) {
         if (((Set *) array->objects[i]) - SPECIAL_SET_ARRAY < lenof(SPECIAL_SET_ARRAY)) {
             // means this object is static defined.
             continue;
@@ -132,6 +132,35 @@ xVoid clearObjArray(ObjArray * array, Allocator * allocator) {
         }
     }
     allocator->free(array->objects);
-    array->n_objs = 0;
+    array->n_objects = 0;
 }
 #undef FREE_OBJ
+
+#define SET_ATTR(_obj) \
+(_obj)->only_match ? (regexp[i] = xReChar('!'), i++) : 0; \
+(_obj)->is_inverse ? (regexp[i] = xReChar('^'), i++) : 0; \
+
+int genSeqRegexp(Sequence *seq, xReChar *regexp, Allocator *allocator) {
+    if (!regexp) return -1;
+    int i = 0;
+    SET_ATTR(seq)
+    allocator->memcpy(seq->value, regexp + i, seq->len);
+    return 0;
+}
+
+int genSetRegexp(Set *set, xReChar *regexp, Allocator *allocator) {
+    if (!regexp) return -1;
+    int i = 0;
+    (regexp[i] = beginS), i ++;
+    SET_ATTR(set)
+    allocator->memcpy(set->plains, regexp + i, set->n_plains);
+    for (int j = 0; j < set->n_ranges; j ++) {
+        (regexp[i] = set->ranges[j].left), i++;
+        (regexp[i + 1] = rangeTO), i++;
+        (regexp[i + 2] = set->ranges[j].right), i++;
+    }
+    regexp[i] = endS;
+    return 0;
+}
+
+#undef SET_ATTR

@@ -3,7 +3,7 @@
 //
 
 #include "char_t.h"
-#ifndef XCHAR_USING_XCHAR
+#ifndef XRE_CHAR_USING_XCHAR
 
 xuInt xRe_ord(xReChar _the_char) {
     return _the_char;

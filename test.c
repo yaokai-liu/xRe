@@ -16,26 +16,27 @@ struct {
 xSize CURRENT_PTR = 0;
 xuLong ENTITY_COUNT = 0;
 
-xVoid * t_malloc(xuLong);
-xVoid * t_calloc(xuLong, xSize);
-xVoid * t_realloc(xVoid *, xuLong);
+xVoid * t_malloc(xSize);
+xVoid * t_calloc(xSize, xSize);
+xVoid * t_realloc(xVoid *, xSize);
 xVoid t_free(xVoid *);
-xVoid t_memcpy(xVoid *src, xVoid *target, xuLong size);
+xVoid t_memcpy(xVoid *src, xVoid *target, xSize size);
 
 int main() {
     Allocator allocator = {
             .malloc = t_malloc,
             .calloc = t_calloc,
             .realloc = t_realloc,
-            .free = t_free
+            .free = t_free,
+            .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    Group * group = processor->parse(processor, xReString("a{,}"));
+    Group * group = processor->parse(processor, xReString("!a b"));
     releaseObj(group, &allocator);
     return 0;
 }
 
-xVoid * t_malloc(xuLong size) {
+xVoid * t_malloc(xSize size) {
     if (size == 0) {
         return nullptrof(xVoid);
     }
@@ -47,13 +48,13 @@ xVoid * t_malloc(xuLong size) {
     ENTITY_TABLE[ENTITY_COUNT].addr = ptr;
     ENTITY_TABLE[ENTITY_COUNT].size = size;
     ENTITY_COUNT ++;
-    printf("Allocate: %lld, %lu. MEM_REMAIN = %llu\n", (xuByte *)ptr - MEMORY, size, MEM_SIZE - CURRENT_PTR);
+    printf("Allocate: %lld, %llu. MEM_REMAIN = %llu\n", (xuByte *)ptr - MEMORY, size, MEM_SIZE - CURRENT_PTR);
     return ptr;
 }
-xVoid * t_calloc(xuLong count, xSize size) {
+xVoid * t_calloc(xSize count, xSize size) {
     return t_malloc(count * size);
 }
-xVoid * t_realloc(xVoid * src, xuLong size) {
+xVoid * t_realloc(xVoid * src, xSize size) {
     xVoid * ptr =  t_malloc(size);
     if (ptr) {
         t_memcpy(src, ptr, size);
@@ -62,7 +63,7 @@ xVoid * t_realloc(xVoid * src, xuLong size) {
     return ptr;
 }
 
-xVoid t_memcpy(xVoid *src, xVoid *target, xuLong size) {
+xVoid t_memcpy(xVoid *src, xVoid *target, xSize size) {
     for (int i = 0; i < size; i ++) {
         ((xuByte *)target)[i] = ((xuByte *)src)[i];
     }

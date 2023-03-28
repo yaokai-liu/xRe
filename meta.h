@@ -26,7 +26,7 @@ typedef enum {
     assign      = xReChar('='),       // group assign to variable: '='
     call        = xReChar('@'),       // call variable: '@'
     copy        = xReChar('#'),       // copy: of variable: '#'
-    lastValue   = xReChar('$'),       // last matched result of variable: '￥'
+    lastValue   = xReChar('$'),       // last matched result of variable: '$'
     attribute   = xReChar('~'),       // attribute: '~'
     dot         = xReChar('.'),       // get label: '.'
 

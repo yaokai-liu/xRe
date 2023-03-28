@@ -11,11 +11,11 @@
 typedef xByte ascii;
 
 
-#ifdef XCHAR_USING_CHAR
+#ifdef XRE_CHAR_USING_CHAR
 typedef char   xReChar;
 #define xReChar(x)      x
 #define xReChar(x)    x
-#elif defined(XCHAR_USING_WCHAR)
+#elif defined(XRE_CHAR_USING_WCHAR)
 #ifdef __WCHAR_TYPE__
 typedef __WCHAR_TYPE__  xReChar;
 #else
@@ -23,15 +23,15 @@ typedef xInt     xReChar;
 #endif
 #define xReChar(x)      L##x
 #define xReString(x)    L##x
-#elif defined(XCHAR_USING_ASCII)
+#elif defined(XRE_CHAR_USING_ASCII)
 typedef ascii xReChar;
 #define xReChar(x)      x
 #define xReString(x)   ((ascii *) (x))
-#elif defined(XCHAR_USING_XASCII)
+#elif defined(XRE_CHAR_USING_XASCII)
 typedef xAscii xReChar;
 #define xReChar(x)      x
 #define xReString(x)    ((xAscii *) (x))
-#elif defined(XCHAR_USING_XCHAR)
+#elif defined(XRE_CHAR_USING_XCHAR)
 typedef xChar xReChar;
 #define xReChar(x)      ((xChar) x)
 #define xReString(x)    ((xChar *) x)
@@ -39,7 +39,7 @@ typedef xChar xReChar;
 #error "You should specify character type."
 #endif
 
-#ifndef XCHAR_USING_XCHAR
+#ifndef XRE_CHAR_USING_XCHAR
 xuInt xRe_ord(xReChar _the_char);
 xReChar xRe_chr(xuInt _the_order);
 #else

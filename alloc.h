@@ -12,10 +12,11 @@
 #endif
 
 typedef struct {
-    xVoid * (*malloc)(xuLong);
-    xVoid * (*calloc)(xuLong, xSize);
-    xVoid * (*realloc)(xVoid *, xuLong);
+    xVoid * (*malloc)(xSize);
+    xVoid * (*calloc)(xSize, xSize);
+    xVoid * (*realloc)(xVoid *, xSize);
     xVoid (*free)(xVoid *);
+    xVoid (*memcpy)(xVoid * src, xVoid * target, xSize size);
 } Allocator;
 
 #endif //X_ALLOC_H

@@ -94,7 +94,7 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
     xuLong n_bch = 0, branch_arr_len = BUFFER_LEN;
     ObjArray * branches = allocator->malloc(branch_arr_len * sizeof(ObjArray));
 
-    branches[n_bch].n_objs = 0; xuLong obj_arr_len = BUFFER_LEN;
+    branches[n_bch].n_objects = 0; xuLong obj_arr_len = BUFFER_LEN;
     branches[n_bch].objects = allocator->malloc(obj_arr_len * sizeof(ReObj *));
     n_bch ++;
 
@@ -137,8 +137,8 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                 Count * cnt = nullptrof(Count);
                 Expression ** expressions = parseCntExp(sp + *offs, &offset, allocator);
                 if (expressions) {
-                    (branches[n_bch].n_objs) --;
-                    obj = branches[n_bch].objects[branches[n_bch].n_objs];
+                    (branches[n_bch].n_objects) --;
+                    obj = branches[n_bch].objects[branches[n_bch].n_objects];
                     cnt = createCnt(expressions, obj, allocator);
                 }
                 obj = cnt;
@@ -153,7 +153,7 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                     }
                     branches = new;
                 }
-                branches[n_bch].n_objs = 0; obj_arr_len = BUFFER_LEN;
+                branches[n_bch].n_objects = 0; obj_arr_len = BUFFER_LEN;
                 branches[n_bch].objects = allocator->malloc(obj_arr_len * sizeof(ReObj *));
                 n_bch ++; (*offs) ++;
                 continue;
@@ -177,6 +177,9 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                 // TODO: match condition.
             }
             default:
+                while (hasChar(WHITESPACE, sp[*offs])) {
+                    (*offs) ++;
+                }
                 obj = parseSeq(sp + *offs, &offset, allocator);
         }
         *offs += offset;
@@ -188,7 +191,7 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
         ((ReObj *)obj)->is_inverse = _is_inverse;
         _only_match = false; _is_inverse = false;
 
-        if (branches[n_bch - 1].n_objs >= obj_arr_len) {
+        if (branches[n_bch - 1].n_objects >= obj_arr_len) {
             obj_arr_len += BUFFER_LEN;
             xVoid * new = allocator->realloc(branches[n_bch - 1].objects, obj_arr_len * sizeof(ReObj *) );
             if (!new) {
@@ -196,8 +199,8 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
             }
             branches[n_bch - 1].objects = new;
         }
-        branches[n_bch - 1].objects[branches[n_bch - 1].n_objs] = obj;
-        branches[n_bch - 1].n_objs ++;
+        branches[n_bch - 1].objects[branches[n_bch - 1].n_objects] = obj;
+        branches[n_bch - 1].n_objects ++;
     }
 
     if (_end_char) {
@@ -214,10 +217,10 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
         }
     }
     for (typeof(n_bch) i = 0; i < n_bch; i ++) {
-        if (branches[i].n_objs == 0) {
+        if (branches[i].n_objects == 0) {
             goto __failed_parse_group;
         }
-        xVoid * new = allocator->realloc(branches[i].objects, (branches[i].n_objs) * sizeof(ReObj *));
+        xVoid * new = allocator->realloc(branches[i].objects, (branches[i].n_objects) * sizeof(ReObj *));
         if (new) {
             branches[i].objects = new;
         }
@@ -301,7 +304,7 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
             xuLong offset = 0;
             Set * set = parseCrt(sp + *offs, &offset, allocator);
             for (int i = 0; i < set->n_plains; i ++) {
-                if (!hasChar(plain_buffer, set->plain[i])) {
+                if (!hasChar(plain_buffer, set->plains[i])) {
                     while (n_plains  >= plain_buffer_len) {
                         plain_buffer_len += BUFFER_LEN;
                         xVoid * new = allocator->realloc(plain_buffer, plain_buffer_len * sizeof(xReChar));
@@ -310,7 +313,7 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
                         }
                         plain_buffer = new;
                     }
-                    plain_buffer[n_plains] = set->plain[i];
+                    plain_buffer[n_plains] = set->plains[i];
                     n_plains ++;
                 }
             }
