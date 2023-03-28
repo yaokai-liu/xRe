@@ -20,9 +20,9 @@ xVoid * t_malloc(xSize);
 xVoid * t_calloc(xSize, xSize);
 xVoid * t_realloc(xVoid *, xSize);
 xVoid t_free(xVoid *);
-xVoid t_memcpy(xVoid *src, xVoid *target, xSize size);
+xVoid t_memcpy(xVoid *target, const xVoid *src, xSize size);
 
-int main() {
+xInt main() {
     Allocator allocator = {
             .malloc = t_malloc,
             .calloc = t_calloc,
@@ -35,6 +35,7 @@ int main() {
     Group * group = processor->parse(processor, test_str);
     if (group)
         releaseObj(group, &allocator);
+    allocator.free(processor);
     return 0;
 }
 
@@ -59,20 +60,24 @@ xVoid * t_calloc(xSize count, xSize size) {
 xVoid * t_realloc(xVoid * src, xSize size) {
     xVoid * ptr =  t_malloc(size);
     if (ptr) {
-        t_memcpy(src, ptr, size);
+        t_memcpy(ptr, src, size);
         t_free(src);
     }
     return ptr;
 }
 
-xVoid t_memcpy(xVoid *src, xVoid *target, xSize size) {
-    for (int i = 0; i < size; i ++) {
+xVoid t_memcpy(xVoid *target, const xVoid *src, xSize size) {
+    for (xInt i = 0; i < size; i ++) {
         ((xuByte *)target)[i] = ((xuByte *)src)[i];
     }
 }
 
 xVoid t_free(xVoid * src) {
-    for(int i = 0; i < ENTITY_COUNT; i ++) {
+    if ((xuByte *)src < MEMORY) {
+        xVoid (*p)(xVoid *) = 0;
+        p(src);
+    }
+    for(xInt i = 0; i < ENTITY_COUNT; i ++) {
         if (ENTITY_TABLE[i].addr == src) {
             printf("Release: %lld, %llu\n", (xuByte *)src - MEMORY, ENTITY_TABLE[i].size);
             ENTITY_TABLE[i].addr = nullptrof(xVoid);

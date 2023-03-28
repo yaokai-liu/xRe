@@ -16,7 +16,8 @@ typedef struct {
     xVoid * (*calloc)(xSize, xSize);
     xVoid * (*realloc)(xVoid *, xSize);
     xVoid (*free)(xVoid *);
-    xVoid (*memcpy)(xVoid * src, xVoid * target, xSize size);
+    xVoid (*memcpy)(xVoid *target,const xVoid *src, xSize size);
+    xVoid (*memset)(xVoid *addr, xSize size, xuByte value);
 } Allocator;
 
 #endif //X_ALLOC_H

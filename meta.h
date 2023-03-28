@@ -15,8 +15,8 @@ typedef enum {
     endS        = xReChar(']'),      // end of set: ']'
     beginC      = xReChar('{'),      // begin of count: '{'
     endC        = xReChar('}'),      // end of count: '}'
-    beginV      = xReChar('<'),      // begin of expression: '<'
-    endV        = xReChar('>'),      // end of expression: '>'
+    beginL      = xReChar('<'),      // begin of expression: '<'
+    endL        = xReChar('>'),      // end of expression: '>'
 
     endP        = xReChar(' '),      // end of plain text: '\s'
     rangeTO     = xReChar('-'),      // range to: '-'

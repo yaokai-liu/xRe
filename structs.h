@@ -6,11 +6,10 @@
 #define X_STRUCTS_H
 
 #include "char_t.h"
-#include "label.h"
 
 typedef enum {
     SEQ, SET, GRP,
-    CNT, EXP
+    CNT, EXP, LBL,
 } obj_type;
 
 #define OBJ_BASIC_ATTRIBUTE \
@@ -23,10 +22,12 @@ typedef struct {
     OBJ_BASIC_ATTRIBUTE
 } ReObj;
 
-typedef struct ObjArray {
-    xuInt n_objects;
-    ReObj ** objects;
-} ObjArray;
+typedef struct {
+    xuInt   cur_len;
+    xuInt   buf_len;
+    xSize   ele_size;
+    xVoid * array;
+} Array;
 
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
@@ -47,9 +48,12 @@ typedef struct {
     Range * ranges;
 } Set;
 
+#ifndef LABEL_NAME_LEN
+#define LABEL_NAME_LEN  8
+#endif
 typedef struct {
-    xReChar     key[8];
-    xVoid *     value;
+    xReChar     name[LABEL_NAME_LEN];
+    xVoid *     object;
     xReChar *   last;
     xInt        last_len;
 } Label;
@@ -61,7 +65,7 @@ typedef struct Group {
     xuInt n_branches;
     xuInt   n_groups;
     xuInt   n_labels;
-    ObjArray * branches;
+    Array * branches;
     Group ** groups;
     Label * labels;
     xReChar *   last;
@@ -82,19 +86,26 @@ typedef struct {
 } Count;
 
 
+#undef OBJ_BASIC_ATTRIBUTE
+
 #include "alloc.h"
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator);
 Set * createSet(xuInt n_plains, xReChar * plain_buffer, xuInt n_ranges, Range * range_buffer , Allocator * allocator);
-Group *createGrp(xuInt n_branches, ObjArray branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
+Group *createGrp(xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
                  Allocator *allocator);
 Count * createCnt(Expression ** expression, ReObj *obj, Allocator * allocator);
+Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * allocator);
 
 xVoid releaseObj(xVoid * obj, Allocator * allocator);
-xVoid clearObjArray(ObjArray * array, Allocator * allocator);
-#undef OBJ_BASIC_ATTRIBUTE
+xVoid clearObjArray(Array _array, Allocator * allocator);
+
+xVoid arrayInit(Array *_array, xSize _type_size, Allocator *allocator);
+xInt arrayAppend(Array * _array, xVoid * _element, Allocator * allocator);
+xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allocator);
+xVoid arrayRetreat(Array * _array, Allocator * allocator);
+xVoid * arrayPop(Array * _array);
 
 extern ReObj * SPECIAL_OBJ_ARRAY[];
-
 
 #endif //X_STRUCTS_H
