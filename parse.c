@@ -136,9 +136,8 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
             default:
                 if (hasChar(WHITESPACE, sp[*offs]) < 0) {
                     obj = parseSeq(sp + *offs, &offset, allocator);
-                }
-                else {
-                    (*offs) ++;
+                } else {
+                    while (hasChar(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
                     goto __label_000000_clean_status;
                 }
         }
@@ -196,12 +195,10 @@ Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     while (sp[*offs] && hasChar(NON_PLAIN, sp[*offs]) < 0) {
         (*offs) ++;
     }
-    arrayConcat(&plain_array, sp, *offs, allocator);
-    arrayAppend(&plain_array, xReString("0"), allocator);
     if (*offs == 0) {
-        if (hasChar(WHITESPACE, sp[*offs]) < 0)
-            goto __failed_parse_sequence;
+        goto __failed_parse_sequence;
     }
+    arrayConcat(&plain_array, sp, *offs, allocator);
     arrayRetreat(&plain_array, allocator);
     return createSeq(plain_array.cur_len, plain_array.array, allocator);
 
