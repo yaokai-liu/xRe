@@ -8,6 +8,7 @@
 #include "char_t.h"
 
 typedef enum {
+    NON = 0,
     SEQ, SET, GRP,
     CNT, EXP, LBL,
 } obj_type;

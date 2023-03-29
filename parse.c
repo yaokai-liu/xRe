@@ -100,9 +100,6 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
             }
             case beginG: {
                 obj = parse(sp + *offs, beginG, endG, &offset, allocator);
-                if (arrayAppend(&group_array, &obj, allocator) < 0) {
-                    goto __failed_parse_group;
-                }
                 break;
             }
             case beginC: {
@@ -113,23 +110,18 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                 arrayRetreat(&obj_array, allocator);
                 arrayAppend(&branch_array, &obj_array, allocator);
                 arrayInit(&obj_array, sizeof(ReObj *), allocator);
+                obj = nullptrof(xVoid);
                 (*offs) ++;
-                goto __label_000000_clean_status;
+                goto __label_000001_clean_attributes;
             }
             case assign: {
-                obj = parseAssignLabel(sp + *offs, NULL, &offset, allocator);
-                if (!obj) {
-                    goto __failed_parse_group;
-                }
-                arrayAppend(&label_array, obj, allocator);
+                obj = parseAssignLabel(sp + *offs, obj, &offset, allocator);
                 (*offs) += offset;
-                goto __label_000000_clean_status;
+                goto __label_000000_obj_process;
             }
             case call:
             case copy:
-            case lastValue: {
-                obj = parseAssignLabel(sp + *offs, NULL, &offset, allocator);
-            }
+            case lastValue:
             case attribute: {
                 // TODO: match condition.
             }
@@ -138,7 +130,7 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                     obj = parseSeq(sp + *offs, &offset, allocator);
                 } else {
                     while (hasChar(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
-                    goto __label_000000_clean_status;
+                    goto __label_000001_clean_attributes;
                 }
         }
         *offs += offset;
@@ -152,7 +144,27 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
             goto __failed_parse_group;
         }
 
-        __label_000000_clean_status:
+        __label_000000_obj_process:
+        switch (((ReObj *)obj)->id) {
+            case NON: {
+                goto __failed_parse_group;
+            }
+            case GRP: {
+                if (arrayAppend(&group_array, &obj, allocator) < 0)
+                    goto __failed_parse_group;
+                break;
+            }
+            case LBL: {
+                if (arrayAppend(&label_array, obj, allocator) < 0) {
+                    releaseObj(obj, allocator);
+                    goto __failed_parse_group;
+                }
+                break;
+            }
+            default:;
+        }
+
+        __label_000001_clean_attributes:
         _only_match = false;
         _is_inverse = false;
     }
@@ -316,6 +328,10 @@ Label * parseAssignLabel(xReChar *regexp, ReObj *obj, xuLong *offs, Allocator *a
         return nullptrof(Label);
     }
     (*offs)++;
+
+    if (!obj) {
+        return nullptrof(Label);
+    }
 
     Label * label = createLabel(sp + p, l, obj, allocator);
     return label;
