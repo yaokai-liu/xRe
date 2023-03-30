@@ -155,7 +155,7 @@ xVoid arrayInit(Array *_array, xSize _type_size, Allocator *allocator) {
     _array->array = allocator->malloc(_array->buf_len * _array->ele_size);
 }
 
-xInt arrayAppend(Array * _array, xVoid * _element, Allocator * allocator) {
+xInt arrayAppend(Array * _array, const xVoid *_element, Allocator * allocator) {
     while (_array->cur_len >= _array->buf_len) {
         _array->buf_len += BUFFER_LEN;
         xVoid * new = allocator->realloc(_array->array, _array->buf_len * _array->ele_size);
@@ -164,7 +164,7 @@ xInt arrayAppend(Array * _array, xVoid * _element, Allocator * allocator) {
         }
         _array->array = new;
     }
-    allocator->memcpy(_array->array + _array->cur_len, _element, _array->ele_size);
+    allocator->memcpy(_array->array + _array->cur_len * _array->ele_size, _element, _array->ele_size);
     _array->cur_len ++;
     return 0;
 }
@@ -180,7 +180,7 @@ xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allo
         _array->array = new;
     }
     allocator->memcpy(_array->array + _array->cur_len, _element, _array->ele_size * count);
-    _array->cur_len ++;
+    _array->cur_len += count;
     return 0;
 }
 
@@ -188,7 +188,22 @@ xVoid arrayRetreat(Array * _array, Allocator * allocator) {
     xVoid * new = allocator->realloc(_array->array, _array->cur_len * _array->ele_size);
     if (new) {
         _array->array = new;
+        _array->buf_len = _array->cur_len;
     }
+}
+
+xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_len) {
+    if (!key) return -1;
+    for (xInt i = 0; i < _array->cur_len; i ++) {
+        xVoid *obj = _array->array + i * _array->ele_size;
+        xuByte * attr = get_attr(obj);
+        if (!attr) return -1;
+        if (key == attr) return i;
+        xInt j = 0;
+        while ( key[j] == attr[j] && j < attr_len) j ++;
+        if (j == attr_len) return i;
+    }
+    return -1;
 }
 
 xVoid * arrayPop(Array * _array) {
@@ -205,7 +220,8 @@ xVoid releaseExp(Expression *exp, Allocator * allocator);
 xVoid releaseLabel(Label * label, Allocator * allocator);
 
 xVoid releaseObj(xVoid *obj, Allocator * allocator) {
-    static xVoid (*RELEASE_ARRAY[6])(xVoid *, Allocator *) = {
+    static xVoid (*RELEASE_ARRAY[])(xVoid *, Allocator *) = {
+            [NON] = (xVoid (*)(xVoid *, Allocator *)) 0,
             [SEQ] = (xVoid (*)(xVoid *, Allocator *)) releaseSeq,
             [GRP] = (xVoid (*)(xVoid *, Allocator *)) releaseGrp,
             [SET] = (xVoid (*)(xVoid *, Allocator *)) releaseSet,

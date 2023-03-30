@@ -102,9 +102,10 @@ xVoid releaseObj(xVoid * obj, Allocator * allocator);
 xVoid clearObjArray(Array _array, Allocator * allocator);
 
 xVoid arrayInit(Array *_array, xSize _type_size, Allocator *allocator);
-xInt arrayAppend(Array * _array, xVoid * _element, Allocator * allocator);
+xInt arrayAppend(Array * _array, const xVoid *_element, Allocator * allocator);
 xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allocator);
 xVoid arrayRetreat(Array * _array, Allocator * allocator);
+xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_len);
 xVoid * arrayPop(Array * _array);
 
 extern ReObj * SPECIAL_OBJ_ARRAY[];

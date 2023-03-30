@@ -31,10 +31,12 @@ xInt main() {
             .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    xReChar * test_str = xReString("");
+    xReChar * test_str = xReString("23456789=<abc> @<abc>");
     Group * group = processor->parse(processor, test_str);
-    if (group)
+    if (group) {
+        printf("%d\n", group->branches[0].cur_len);
         releaseObj(group, &allocator);
+    }
     allocator.free(processor);
     return 0;
 }
@@ -55,7 +57,9 @@ xVoid * t_malloc(xSize size) {
     return ptr;
 }
 xVoid * t_calloc(xSize count, xSize size) {
-    return t_malloc(count * size);
+    xuByte* p = t_malloc(count * size);
+    for (int i = 0; i < size; i++) p[i] = 0;
+    return p;
 }
 xVoid * t_realloc(xVoid * src, xSize size) {
     xVoid * ptr =  t_malloc(size);
