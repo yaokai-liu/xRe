@@ -304,6 +304,7 @@ Count * parseCntExp(xReChar *regexp, ReObj *obj, xuLong *offs, Allocator *alloca
     while (stridx(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
     min = parseExp(sp + *offs, &offset, allocator);
     *offs += offset;
+    while (stridx(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
     if (sp[*offs] == comma) {
         max_same_min = false;
         (*offs) ++;
@@ -312,6 +313,7 @@ Count * parseCntExp(xReChar *regexp, ReObj *obj, xuLong *offs, Allocator *alloca
     while (stridx(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
     max = parseExp(sp + *offs, &offset, allocator);
     *offs += offset;
+    while (stridx(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
     if (sp[*offs] == comma) {
         (*offs) ++;
     }
@@ -319,7 +321,7 @@ Count * parseCntExp(xReChar *regexp, ReObj *obj, xuLong *offs, Allocator *alloca
     while (stridx(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
     step = parseExp(sp + *offs, &offset, allocator);
     *offs += offset;
-
+    while (stridx(WHITESPACE, sp[*offs]) >= 0) (*offs) ++;
     if (sp[*offs] != endC) goto __failed_parse_count;
     (*offs) ++;
 
