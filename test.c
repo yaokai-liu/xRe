@@ -31,11 +31,11 @@ xInt main() {
             .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    xReChar * test_str = xReString("23456789{, 2 , 3}");
+    xReChar * test_str = xReString("23456789=<abc> $<abc>");
     Group * group = processor->parse(processor, test_str);
     if (group) {
         printf("%d\n", group->branches[0].cur_len);
-        releaseObj(group, &allocator);
+        releaseObj((ReObj *) group, &allocator);
     }
     allocator.free(processor);
     return 0;

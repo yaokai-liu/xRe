@@ -6,45 +6,45 @@
 #include "meta.h"
 
 Sequence SPECIAL_SEQ_ARRAY[] = {
-    { .id = SEQ, .value = xReString("\n"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("\r"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("\f"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("\v"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("\t"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString(" "), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("("), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString(")"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("["), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("]"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("{"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("}"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("<"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString(">"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("\\"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("|"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("@"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("#"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("$"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("~"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString(":"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("="), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("+"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("-"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("*"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("/"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("?"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("!"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("^"), .is_inverse = false, .only_match = false },
-    { .id = SEQ, .value = xReString("."), .is_inverse = true, .only_match = false },
+    { .id = SEQ, .value = xReString("\n"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("\r"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("\f"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("\v"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("\t"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString(" "), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("("), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString(")"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("["), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("]"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("{"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("}"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("<"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString(">"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("\\"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("|"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("@"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("#"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("$"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("~"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString(":"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("="), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("+"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("-"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("*"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("/"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("?"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("!"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("^"), .is_inverse = false, .only_match = false, .unreleasable = true },
+    { .id = SEQ, .value = xReString("."), .is_inverse = false, .only_match = false, .unreleasable = true },
 };
 
 Set SPECIAL_SET_ARRAY[] = {
-    { .id = SET, .n_plains = 6, .plains = WHITESPACE, .only_match = false, .is_inverse = false},
-    { .id = SET, .n_plains = 6, .plains = WHITESPACE, .only_match = false, .is_inverse = true},
+    { .id = SET, .n_plains = 6, .plains = WHITESPACE, .only_match = false, .is_inverse = false, .unreleasable = true },
+    { .id = SET, .n_plains = 6, .plains = WHITESPACE, .only_match = false, .is_inverse = true, .unreleasable = true },
     { .id = SET, .n_plains = 1, .plains = xReString("_"), .only_match = false, .is_inverse = false,
-            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ"), .unreleasable = true },
     { .id = SET, .n_plains = 1, .plains = xReString("_"), .only_match = false, .is_inverse = true,
-            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ")},
+            .n_ranges = 3, .ranges = (Range *) xReString("09azAZ"), .unreleasable = true },
 };
 
 ReObj * SPECIAL_OBJ_ARRAY[] = {
@@ -143,6 +143,8 @@ Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * al
         label->name[i] = name[i];
     }
     label->object = obj;
+    label->last_val.id = SEQ;
+    label->last_val.unreleasable = true;
     return label;
 }
 
@@ -178,6 +180,12 @@ xInt arrayAppend(Array * _array, const xVoid *_element, Allocator * allocator) {
     return 0;
 }
 
+xInt arraySet(Array * _array, xuInt index, const xVoid *_element, Allocator * allocator) {
+    if (index >= _array->cur_len)
+        return -1;
+    allocator->memcpy(_array->array + index * _array->ele_size, _element, _array->ele_size);
+    return 0;
+}
 
 xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allocator) {
     while (_array->cur_len + count >= _array->buf_len) {
@@ -188,7 +196,7 @@ xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allo
         }
         _array->array = new;
     }
-    allocator->memcpy(_array->array + _array->cur_len, _element, _array->ele_size * count);
+    allocator->memcpy(_array->array + _array->cur_len * _array->ele_size, _element, _array->ele_size * count);
     _array->cur_len += count;
     return 0;
 }
@@ -201,7 +209,7 @@ xVoid arrayRetreat(Array * _array, Allocator * allocator) {
     }
 }
 
-xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_len) {
+xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_size) {
     if (!key) return -1;
     for (xInt i = 0; i < _array->cur_len; i ++) {
         xVoid *obj = _array->array + i * _array->ele_size;
@@ -209,8 +217,8 @@ xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid
         if (!attr) return -1;
         if (key == attr) return i;
         xInt j = 0;
-        while ( key[j] == attr[j] && j < attr_len) j ++;
-        if (j == attr_len) return i;
+        while ( key[j] == attr[j] && j < attr_size) j ++;
+        if (j == attr_size) return i;
     }
     return -1;
 }
@@ -228,7 +236,7 @@ xVoid releaseCnt(Count *cnt, Allocator * allocator);
 xVoid releaseExp(Expression *exp, Allocator * allocator);
 xVoid releaseLabel(Label * label, Allocator * allocator);
 
-xVoid releaseObj(xVoid *obj, Allocator * allocator) {
+xVoid releaseObj(ReObj *obj, Allocator * allocator) {
     static xVoid (*RELEASE_ARRAY[])(xVoid *, Allocator *) = {
             [NON] = (xVoid (*)(xVoid *, Allocator *)) 0,
             [SEQ] = (xVoid (*)(xVoid *, Allocator *)) releaseSeq,
@@ -238,8 +246,9 @@ xVoid releaseObj(xVoid *obj, Allocator * allocator) {
             [EXP] = (xVoid (*)(xVoid *, Allocator *)) releaseExp,
             [LBL] = (xVoid (*)(xVoid *, Allocator *)) releaseLabel,
     };
-    obj_type id = ((obj_type *) obj)[0];
-    RELEASE_ARRAY[id](obj, allocator);
+    if (obj->unreleasable)
+        return;
+    RELEASE_ARRAY[obj->id](obj, allocator);
 }
 
 #define FREE_OBJ(_obj) \
@@ -267,6 +276,9 @@ xVoid releaseSet(Set *set, Allocator * allocator) {
 
 xVoid releaseCnt(Count *cnt, Allocator * allocator) {
     releaseObj(cnt->obj, allocator);
+    releaseExp(cnt->min, allocator);
+    if (cnt->max != cnt->min) releaseExp(cnt->max, allocator);
+    releaseExp(cnt->step, allocator);
     FREE_OBJ(cnt)
 }
 
@@ -279,23 +291,13 @@ xVoid releaseExp(Expression *exp, Allocator * allocator) {
 }
 
 xVoid clearObjArray(Array _array, Allocator * allocator) {
-#define IS_STATIC__(_obj, _cat) \
-     (  ((xVoid *) _obj) - (xVoid *) SPECIAL_##_cat##_ARRAY < sizeof(SPECIAL_##_cat##_ARRAY) \
-     && ((xVoid *) _obj) >=(xVoid *) SPECIAL_##_cat##_ARRAY \
-     && _obj->id == _cat)
-#define IS_STATIC(_obj) \
-    (  IS_STATIC__(_obj, SET) \
-    || IS_STATIC__(_obj, SEQ))
-
     for (typeof(_array.cur_len) i = 0; i < _array.cur_len; i ++) {
-        if (!IS_STATIC(((ReObj **)_array.array)[i])) {
-            releaseObj(((ReObj **)_array.array)[i], allocator);
+        if (((struct ob_obj *)_array.array)[i].releasable) {
+            releaseObj(((struct ob_obj *)_array.array)[i].obj, allocator);
         }
     }
     allocator->free(_array.array);
     _array.cur_len = 0;
-#undef IS_STATIC__
-#undef IS_STATIC
 }
 #undef FREE_OBJ
 

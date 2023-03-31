@@ -15,6 +15,7 @@ typedef enum {
 
 #define OBJ_BASIC_ATTRIBUTE \
     obj_type id; \
+    xBool unreleasable; \
     xBool only_match; \
     xBool is_inverse; \
 
@@ -22,6 +23,11 @@ typedef enum {
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
 } ReObj;
+
+struct ob_obj {
+    xBool releasable;
+    ReObj * obj;
+};
 
 typedef struct {
     xuInt   cur_len;
@@ -50,14 +56,13 @@ typedef struct {
 } Set;
 
 #ifndef LABEL_NAME_LEN
-#define LABEL_NAME_LEN  8
+#define LABEL_NAME_LEN  12
 #endif
 typedef struct {
     obj_type    id;
     xReChar     name[LABEL_NAME_LEN];
     xVoid *     object;
-    xReChar *   last;
-    xInt        last_len;
+    Sequence    last_val;
 } Label;
 
 
@@ -107,14 +112,15 @@ Count *createCnt(Expression *min, Expression *max, Expression *step, ReObj *obj,
 Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator);
 Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * allocator);
 
-xVoid releaseObj(xVoid * obj, Allocator * allocator);
+xVoid releaseObj(ReObj *obj, Allocator * allocator);
 xVoid clearObjArray(Array _array, Allocator * allocator);
 
 xVoid arrayInit(Array *_array, xSize _type_size, Allocator *allocator);
 xInt arrayAppend(Array * _array, const xVoid *_element, Allocator * allocator);
+xInt arraySet(Array * _array, xuInt index, const xVoid *_element, Allocator * allocator);
 xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allocator);
 xVoid arrayRetreat(Array * _array, Allocator * allocator);
-xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_len);
+xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_size);
 xVoid * arrayPop(Array * _array);
 
 extern ReObj * SPECIAL_OBJ_ARRAY[];
