@@ -7,7 +7,8 @@
 
 #include "char_t.h"
 
-xInt hasChar(const xReChar * _string, xReChar _chr);
-
+xInt stridx(const xReChar * _string, xReChar _chr);
+xBool strcmp(const xReChar * _str1, const xReChar * _str2);
+xuInt str2ul_d(const xReChar *_str, xuLong *_val_dest);
 
 #endif //X_STRING_H

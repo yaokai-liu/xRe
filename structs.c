@@ -126,23 +126,32 @@ Group *createGrp(xuInt n_branches, Array branches[], xuInt n_groups, Group *grou
     return group;
 }
 
-Count * createCnt(Expression * expression[], ReObj * obj, Allocator * allocator) {
+Count *createCnt(Expression *min, Expression *max, Expression *step, ReObj *obj, Allocator *allocator) {
     Count * count = allocator->calloc(1, sizeof(Count));
     count->id = CNT;
-    count->min = expression[0];
-    count->max = expression[1];
-    count->step = expression[2];
+    count->min = min;
+    count->max = max;
+    count->step = step;
     count->obj = obj;
     return count;
 }
 
 Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * allocator) {
     Label * label = allocator->calloc(1, sizeof(Label));
+    label->id = LBL;
     for (xInt i = 0; i < (len <= LABEL_NAME_LEN ? len : LABEL_NAME_LEN); i++) {
         label->name[i] = name[i];
     }
     label->object = obj;
     return label;
+}
+
+Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator) {
+    Expression * exp = allocator->calloc(1, sizeof(Expression));
+    exp->id = EXP;
+    exp->exp_type = type;
+    exp->value = value;
+    return exp;
 }
 
 
@@ -266,7 +275,7 @@ xVoid releaseLabel(Label * label, Allocator * allocator) {
 }
 
 xVoid releaseExp(Expression *exp, Allocator * allocator) {
-
+    allocator->free(exp);
 }
 
 xVoid clearObjArray(Array _array, Allocator * allocator) {

@@ -53,6 +53,7 @@ typedef struct {
 #define LABEL_NAME_LEN  8
 #endif
 typedef struct {
+    obj_type    id;
     xReChar     name[LABEL_NAME_LEN];
     xVoid *     object;
     xReChar *   last;
@@ -73,10 +74,17 @@ typedef struct Group {
     xInt        last_len;
 } Group;
 
-typedef struct {
-    OBJ_BASIC_ATTRIBUTE
 
+enum exp_type{
+    number,
+    label
+};
+typedef struct {
+    obj_type    id;
+    enum exp_type exp_type;
+    xVoid * value;
 } Expression;
+
 
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
@@ -95,7 +103,8 @@ Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator);
 Set * createSet(xuInt n_plains, xReChar * plain_buffer, xuInt n_ranges, Range * range_buffer , Allocator * allocator);
 Group *createGrp(xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
                  Allocator *allocator);
-Count * createCnt(Expression ** expression, ReObj *obj, Allocator * allocator);
+Count *createCnt(Expression *min, Expression *max, Expression *step, ReObj *obj, Allocator *allocator);
+Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator);
 Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * allocator);
 
 xVoid releaseObj(xVoid * obj, Allocator * allocator);
