@@ -24,10 +24,10 @@ typedef struct {
     OBJ_BASIC_ATTRIBUTE
 } ReObj;
 
-struct ob_obj {
+typedef struct {
     xBool releasable;
     ReObj * obj;
-};
+} ObjItem;
 
 typedef struct {
     xuInt   cur_len;
@@ -69,9 +69,11 @@ typedef struct {
 typedef struct Group Group;
 typedef struct Group {
     OBJ_BASIC_ATTRIBUTE
+    xBool at_begin;
+    xBool at_end;
     xuInt n_branches;
-    xuInt   n_groups;
-    xuInt   n_labels;
+    xuInt n_groups;
+    xuInt n_labels;
     Array * branches;
     Group ** groups;
     Label * labels;
@@ -85,7 +87,7 @@ enum exp_type{
     label
 };
 typedef struct {
-    obj_type    id;
+    OBJ_BASIC_ATTRIBUTE
     enum exp_type exp_type;
     xVoid * value;
 } Expression;
@@ -96,7 +98,7 @@ typedef struct {
     Expression * min;
     Expression * max;
     Expression * step;
-    ReObj * obj;
+    ObjItem obj;
 } Count;
 
 
@@ -106,11 +108,11 @@ typedef struct {
 
 Sequence * createSeq(xSize len, xReChar * value, Allocator * allocator);
 Set * createSet(xuInt n_plains, xReChar * plain_buffer, xuInt n_ranges, Range * range_buffer , Allocator * allocator);
-Group *createGrp(xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
-                 Allocator *allocator);
-Count *createCnt(Expression *min, Expression *max, Expression *step, ReObj *obj, Allocator *allocator);
+Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[],
+                 xuInt n_labels, Label *labels, Allocator *allocator);
+Count *createCnt(Expression *min, Expression *max, Expression *step, ObjItem *obj, Allocator *allocator);
 Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator);
-Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * allocator);
+xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Allocator *allocator);
 
 xVoid releaseObj(ReObj *obj, Allocator * allocator);
 xVoid clearObjArray(Array _array, Allocator * allocator);
@@ -121,8 +123,8 @@ xInt arraySet(Array * _array, xuInt index, const xVoid *_element, Allocator * al
 xInt arrayConcat(Array * _array, xVoid * _element, xuInt count, Allocator * allocator);
 xVoid arrayRetreat(Array * _array, Allocator * allocator);
 xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid *), xSize attr_size);
-xVoid * arrayPop(Array * _array);
+xInt arrayPop(Array *_array, xVoid *_dest, Allocator *allocator);
 
-extern ReObj * SPECIAL_OBJ_ARRAY[];
-
+extern ReObj * CONVERT_OBJ_ARRAY[];
+extern ReObj * MACRO_OBJ_ARRAY[];
 #endif //X_STRUCTS_H

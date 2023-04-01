@@ -9,26 +9,26 @@
 typedef enum {
     escape      = xReChar('\\'),     // escape char: '\'
 
-    beginG      = xReChar('('),      // begin of group : '('
-    endG        = xReChar(')'),      // end of group: ')'
-    beginS      = xReChar('['),      // begin of set: '['
-    endS        = xReChar(']'),      // end of set: ']'
-    beginC      = xReChar('{'),      // begin of count: '{'
-    endC        = xReChar('}'),      // end of count: '}'
-    beginL      = xReChar('<'),      // begin of expression: '<'
-    endL        = xReChar('>'),      // end of expression: '>'
+    beginG      = xReChar('('),      // atBegin of group : '('
+    endG        = xReChar(')'),      // atEnd of group: ')'
+    beginS      = xReChar('['),      // atBegin of set: '['
+    endS        = xReChar(']'),      // atEnd of set: ']'
+    beginC      = xReChar('{'),      // atBegin of count: '{'
+    endC        = xReChar('}'),      // atEnd of count: '}'
+    beginL      = xReChar('<'),      // atBegin of expression: '<'
+    endL        = xReChar('>'),      // atEnd of expression: '>'
 
-    endP        = xReChar(' '),      // end of plain text: '\s'
+    endP        = xReChar(' '),      // atEnd of plain text: '\s'
     rangeTO     = xReChar('-'),      // range to: '-'
 
     comma       = xReChar(','),       // comma: ','
     unionOR     = xReChar('|'),       // group union: '|'
     assign      = xReChar('='),       // group assign to variable: '='
     call        = xReChar('@'),       // call variable: '@'
-    copy        = xReChar('#'),       // copy: of variable: '#'
     lastValue   = xReChar('$'),       // last matched result of variable: '$'
-    attribute   = xReChar('~'),       // attribute: '~'
 
+    atBegin     = xReChar('&'),       // atBegin: '&'
+    atEnd       = xReChar('~'),       // atEnd: '~'
     dot         = xReChar('.'),       // macro or get label: '.'
     plus        = xReChar('+'),       // macro: '+'
     star        = xReChar('*'),       // macro: '*'
@@ -41,6 +41,8 @@ typedef enum {
 #define METAS xReString("()[]{}<>\\|@#$~:=+-*/?!^.")
 
 #define WHITESPACE xReString("\n\r\f\v\t ")
+
+#define CRLF xReString("\n\r")
 
 // NON_PLAIN = METAS + WHITESPACE
 #define NON_PLAIN xReString("\n\r\f\v\t ()[]{}<>\\|@#$~:=+-*/?!^.")

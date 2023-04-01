@@ -45,9 +45,25 @@ Set SPECIAL_SET_ARRAY[] = {
             .n_ranges = 3, .ranges = (Range *) xReString("09azAZ"), .unreleasable = true },
     { .id = SET, .n_plains = 1, .plains = xReString("_"), .only_match = false, .is_inverse = true,
             .n_ranges = 3, .ranges = (Range *) xReString("09azAZ"), .unreleasable = true },
+    // MACRO set
+    { .id = SET, .n_plains = 2, .plains = CRLF, .only_match = false, .is_inverse = true, .unreleasable = true },
 };
 
-ReObj * SPECIAL_OBJ_ARRAY[] = {
+static Expression SPECIAL_EXP_ARRAY[] = {
+        {.id = EXP, .unreleasable = true, .exp_type = number, .value = (xVoid *) 0},
+        {.id = EXP, .unreleasable = true, .exp_type = number, .value = (xVoid *) 1},
+};
+
+Count SPECIAL_CNT_ARRAY[] = {
+        {.id = CNT, .unreleasable = true, .is_inverse = false, .only_match = false, .obj = nullptrof(ReObj),
+         .min = &SPECIAL_EXP_ARRAY[1], .max = &SPECIAL_EXP_ARRAY[0], .step = &SPECIAL_EXP_ARRAY[1]},
+        {.id = CNT, .unreleasable = true, .is_inverse = false, .only_match = false, .obj = nullptrof(ReObj),
+         .min = &SPECIAL_EXP_ARRAY[0], .max = &SPECIAL_EXP_ARRAY[0], .step = &SPECIAL_EXP_ARRAY[1]},
+        {.id = CNT, .unreleasable = true, .is_inverse = false, .only_match = false, .obj = nullptrof(ReObj),
+         .min = &SPECIAL_EXP_ARRAY[0], .max = &SPECIAL_EXP_ARRAY[1], .step = &SPECIAL_EXP_ARRAY[1]},
+};
+
+ReObj * CONVERT_OBJ_ARRAY[] = {
     // sequence
     (ReObj *) &SPECIAL_SEQ_ARRAY[0],
     (ReObj *) &SPECIAL_SEQ_ARRAY[1],
@@ -84,6 +100,14 @@ ReObj * SPECIAL_OBJ_ARRAY[] = {
     (ReObj *) &SPECIAL_SET_ARRAY[1],
     (ReObj *) &SPECIAL_SET_ARRAY[2],
     (ReObj *) &SPECIAL_SET_ARRAY[3],
+
+};
+
+ReObj * MACRO_OBJ_ARRAY[] = {
+        (ReObj *) &SPECIAL_SET_ARRAY[4],
+        (ReObj *) &SPECIAL_CNT_ARRAY[0],
+        (ReObj *) &SPECIAL_CNT_ARRAY[1],
+        (ReObj *) &SPECIAL_CNT_ARRAY[2],
 };
 
 xInt genSeqRegexp(Sequence *seq, xReChar *regexp, Allocator *allocator);
@@ -113,10 +137,12 @@ Set * createSet(xuInt n_plains, xReChar * plain_buffer,
     return set;
 }
 
-Group *createGrp(xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[], xuInt n_labels, Label *labels,
-                 Allocator *allocator) {
+Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[],
+                 xuInt n_labels, Label *labels, Allocator *allocator) {
     Group * group = allocator->calloc(1, sizeof(Group));
     group->id = GRP;
+    group->at_begin = at_begin;
+    group->at_end = at_end;
     group->n_branches = n_branches;
     group->branches = branches;
     group->n_groups = n_groups;
@@ -126,18 +152,17 @@ Group *createGrp(xuInt n_branches, Array branches[], xuInt n_groups, Group *grou
     return group;
 }
 
-Count *createCnt(Expression *min, Expression *max, Expression *step, ReObj *obj, Allocator *allocator) {
+Count *createCnt(Expression *min, Expression *max, Expression *step, ObjItem *obj, Allocator *allocator) {
     Count * count = allocator->calloc(1, sizeof(Count));
     count->id = CNT;
     count->min = min;
     count->max = max;
     count->step = step;
-    count->obj = obj;
+    count->obj = *obj;
     return count;
 }
 
-Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * allocator) {
-    Label * label = allocator->calloc(1, sizeof(Label));
+xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Allocator *allocator) {
     label->id = LBL;
     for (xInt i = 0; i < (len <= LABEL_NAME_LEN ? len : LABEL_NAME_LEN); i++) {
         label->name[i] = name[i];
@@ -145,7 +170,7 @@ Label * createLabel(const xReChar * name, xuInt len, ReObj * obj, Allocator * al
     label->object = obj;
     label->last_val.id = SEQ;
     label->last_val.unreleasable = true;
-    return label;
+    return 0;
 }
 
 Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator) {
@@ -223,9 +248,14 @@ xInt arrayFindByAttr(Array *_array, const xuByte *key, xuByte *(*get_attr)(xVoid
     return -1;
 }
 
-xVoid * arrayPop(Array * _array) {
+xInt arrayPop(Array *_array, xVoid *_dest, Allocator *allocator) {
+    if (_array->cur_len < 1) return -1;
     _array->cur_len --;
-    return _array->array + _array->cur_len * _array->ele_size;
+    if (_dest) {
+        xVoid *addr = _array->array + _array->cur_len * _array->ele_size;
+        allocator->memcpy(_dest, addr, _array->ele_size);
+    }
+    return 0;
 }
 #undef BUFFER_LEN
 
@@ -256,6 +286,7 @@ xVoid releaseObj(ReObj *obj, Allocator * allocator) {
 
 xVoid releaseSeq(Sequence *seq, Allocator * allocator) {
     allocator->free(seq->value);
+    FREE_OBJ(seq)
 }
 
 xVoid releaseGrp(Group *grp, Allocator * allocator) {
@@ -275,11 +306,14 @@ xVoid releaseSet(Set *set, Allocator * allocator) {
 
 
 xVoid releaseCnt(Count *cnt, Allocator * allocator) {
-    releaseObj(cnt->obj, allocator);
+    if (cnt->obj.releasable)
+        releaseObj(cnt->obj.obj, allocator);
     releaseExp(cnt->min, allocator);
-    if (cnt->max != cnt->min) releaseExp(cnt->max, allocator);
+    if (cnt->max != cnt->min)
+        releaseExp(cnt->max, allocator);
     releaseExp(cnt->step, allocator);
-    FREE_OBJ(cnt)
+    if (!cnt->unreleasable)
+        FREE_OBJ(cnt)
 }
 
 xVoid releaseLabel(Label * label, Allocator * allocator) {
@@ -287,13 +321,14 @@ xVoid releaseLabel(Label * label, Allocator * allocator) {
 }
 
 xVoid releaseExp(Expression *exp, Allocator * allocator) {
-    allocator->free(exp);
+    if (! exp->unreleasable)
+        allocator->free(exp);
 }
 
 xVoid clearObjArray(Array _array, Allocator * allocator) {
     for (typeof(_array.cur_len) i = 0; i < _array.cur_len; i ++) {
-        if (((struct ob_obj *)_array.array)[i].releasable) {
-            releaseObj(((struct ob_obj *)_array.array)[i].obj, allocator);
+        if (((ObjItem *)_array.array)[i].releasable) {
+            releaseObj(((ObjItem *)_array.array)[i].obj, allocator);
         }
     }
     allocator->free(_array.array);
