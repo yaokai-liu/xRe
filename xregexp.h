@@ -11,7 +11,7 @@
 
 typedef struct XReProcessor XReProcessor;
 
-typedef xInt (matcher)(const xReChar * source, xInt * length);
+typedef xInt (executor)(const xReChar * source, xInt * length);
 typedef struct XReProcessor {
     struct {
         xuLong position;
@@ -22,11 +22,13 @@ typedef struct XReProcessor {
         arithmetic = 1,
     } state;
     Allocator * allocator;
+    Array global_group_array;
+    Array global_label_array;
     Group * (* parse)(XReProcessor * processor, xReChar * regexp);
-    xInt (* match_o)(ReObj * obj, const xReChar * source, xInt * length);
-    xInt (* match_c)(const xReChar * pattern, const xReChar * source, xInt * length);
-    matcher * (* compile_o)(ReObj * obj);
-    matcher * (* compile_c)(const xReChar * pattern);
+    xInt (* exec_o)(ReObj * obj, const xReChar * source, xInt * length);
+    xInt (* exec_c)(const xReChar * pattern, const xReChar * source, xInt * length);
+    executor * (* compile_o)(ReObj * obj);
+    executor * (* compile_c)(const xReChar * pattern);
 } XReProcessor;
 
 XReProcessor * xReProcessor(Allocator * allocator);

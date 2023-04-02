@@ -7,8 +7,8 @@
 
 #include "xregexp.h"
 
-matcher * xReProcessor_compile_o(ReObj * obj);
-matcher * xReProcessor_compile_c(const xReChar * pattern);
+executor * xReProcessor_compile_o(ReObj * obj);
+executor * xReProcessor_compile_c(const xReChar * pattern);
 
 
 #endif //X_COMPILE_H

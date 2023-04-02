@@ -31,17 +31,17 @@ xInt main() {
             .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    xReChar * test_str = xReString("1=<aaa>@<aaa>{0,1}");
+    xReChar * test_str = xReString("abc=<sss>@<sss>");
     Group * group = processor->parse(processor, test_str);
     if (group) {
-        printf("%d\n", group->branches[0].cur_len);
+        printf("\nBranch Count = %d\n\n", group->n_branches);
         releaseObj((ReObj *) group, &allocator);
     }
     allocator.free(processor);
     xInt unreleased = 0;
     for (int i = 0; i < ENTITY_COUNT; i++) {
         if (ENTITY_TABLE[i].addr) {
-            printf("Unreleased Addr: %zu, Size: %llu, Index = %d\n",
+            printf("Unreleased Addr: %zu, Size: %lu, Index = %d\n",
                    ENTITY_TABLE[i].addr - (xVoid *) MEMORY, ENTITY_TABLE[i].size, i);
             unreleased ++ ;
         }
@@ -61,7 +61,7 @@ xVoid * t_malloc(xSize size) {
     CURRENT_PTR += size;
     ENTITY_TABLE[ENTITY_COUNT].addr = ptr;
     ENTITY_TABLE[ENTITY_COUNT].size = size;
-    printf("Allocate: %lld, %llu. MEM_USED = %llu, Index = %lu\n",
+    printf("Allocate: %ld, %lu. MEM_USED = %lu, Index = %lu\n",
            (xuByte *)ptr - MEMORY, size, CURRENT_PTR, ENTITY_COUNT);
     ENTITY_COUNT ++;
     return ptr;

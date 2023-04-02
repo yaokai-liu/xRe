@@ -8,14 +8,16 @@
 
 #define LAMBDA
 
-static Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *offs, Allocator *allocator);
+static Group *
+parse(xReChar *regexp, Array *g_group_array, Array *g_label_array, xReChar _begin_char, xReChar _end_char, xuLong *offs,
+      Allocator *allocator);
 static ReObj * parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator);
 static Count * parseMacroCount(xReChar *regexp, ObjItem *obj, xuLong *offs, Allocator *allocator);
 static Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
 static Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
-static xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *label_array, xuLong *offs, Allocator *allocator);
-static ReObj * parseCallLabel(xReChar *regexp, xuLong *offs, Array *label_array, Allocator *allocator);
-static Sequence * parseLastValOfLabel(xReChar *regexp, xuLong *offs, Array *label_array, Allocator *allocator);
+static xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *offs, Allocator *allocator);
+static ReObj *parseCallLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator);
+static Sequence *parseLastValOfLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator);
 static Count * parseCntExp(xReChar *regexp, ObjItem *obj, xuLong *offs, Allocator *allocator);
 static Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
 
@@ -24,10 +26,21 @@ LAMBDA xuByte *labelGetName(Label * label) {
 }
 
 Group * xReProcessor_parse(XReProcessor *processor, xReChar *pattern) {
-    return parse(pattern, 0, xReChar('\0'), &(processor->errorLog.position), processor->allocator);
+    if (!processor->global_group_array.array)
+        arrayInit(&processor->global_group_array, sizeof(Group *), processor->allocator);
+    if (!processor->global_label_array.array)
+        arrayInit(&processor->global_label_array, sizeof(Label), processor->allocator);
+    return parse(pattern,
+                 &processor->global_group_array, &processor->global_label_array,
+                 0, xReChar('\0'),
+                 &(processor->errorLog.position),
+                 processor->allocator);
 }
 
-Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *offs, Allocator *allocator) {
+Group * parse(xReChar *regexp,
+      Array *g_group_array, Array *g_label_array,
+      xReChar _begin_char, xReChar _end_char,
+      xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar * sp = regexp;
 
@@ -53,6 +66,8 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
 
     Array label_array = {};
     arrayInit(&label_array, sizeof(Label), allocator);
+
+    Array * context[4] = {&group_array, &label_array, g_group_array, g_label_array};
 
     xBool _only_match = false; xBool _is_inverse = false;
     while (sp[*offs] && sp[*offs] != _end_char && sp[*offs] != atEnd) {
@@ -93,8 +108,15 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                 break;
             }
             case beginG: {
-                ob_obj.obj = (ReObj *) parse(sp + *offs, beginG, endG, &offset, allocator);
+                ob_obj.obj = (ReObj *) parse(sp + *offs,
+                                             g_group_array, g_label_array,
+                                             beginG, endG,
+                                             &offset, allocator);
                 if (arrayAppend(&group_array, &ob_obj.obj, allocator) < 0) {
+                    releaseObj(ob_obj.obj, allocator);
+                    goto __failed_parse_group;
+                }
+                if (arrayAppend(g_group_array, &ob_obj.obj, allocator) < 0) {
                     releaseObj(ob_obj.obj, allocator);
                     goto __failed_parse_group;
                 }
@@ -116,27 +138,23 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
             }
             case assign: {
                 xVoid * obj = ((ObjItem *)obj_array.array)[obj_array.cur_len - 1].obj;
-                xInt s = parseAssignLabel(sp + *offs, obj, &label_array, &offset, allocator);
+                xInt s = parseAssignLabel(sp + *offs, obj, context, &offset, allocator);
                 (*offs) += offset;
                 if (s < 0) goto __failed_parse_group;
                 continue;
             }
             case call: {
-                ob_obj.obj = parseCallLabel(sp + *offs, &offset, &label_array, allocator);
-                ob_obj.releasable = false;
+                ob_obj.obj = parseCallLabel(sp + *offs, context, &offset, allocator);
                 *offs += offset;
                 if (!ob_obj.obj) goto __failed_parse_group;
                 goto __label_000002_append_obj;
             }
             case lastValue: {
-                ob_obj.obj = (ReObj *) parseLastValOfLabel(sp + *offs, &offset, &label_array, allocator);
+                ob_obj.obj = (ReObj *) parseLastValOfLabel(sp + *offs, context, &offset, allocator);
                 ob_obj.releasable = false;
                 *offs += offset;
                 if (!ob_obj.obj) goto __failed_parse_group;
                 break;
-            }
-            case atEnd: {
-                // TODO: match condition.
             }
             default:
                 if (stridx(WHITESPACE, sp[*offs]) < 0) {
@@ -187,6 +205,7 @@ Group *parse(xReChar *regexp, xReChar _begin_char, xReChar _end_char, xuLong *of
                      allocator);
 
     __failed_parse_group:
+    clearObjArray(obj_array, allocator);
     for (xuInt i = 0; i < branch_array.cur_len; i++) {
         Array array = ((Array *) branch_array.array)[i];
         clearObjArray(array, allocator);
@@ -332,7 +351,7 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     }
     (*offs) ++;
 
-    if (!plain_array.cur_len && range_array.cur_len) {
+    if (!plain_array.cur_len && !range_array.cur_len) {
         goto __failed_parse_set;
     }
 
@@ -416,9 +435,9 @@ Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     return createExp(e_type, value, allocator);
 }
 
-xReChar *parseLabelName(xReChar *regexp, xuLong *len, xuLong *offs);
+xInt parseLabelName(xReChar *regexp, Array *context[], xuInt *idx, xInt *signal, xuLong *offs, xReChar **p, xuInt *len);
 
-xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *label_array, xuLong *offs, Allocator *allocator) {
+xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar  * sp = regexp;
 
@@ -427,9 +446,12 @@ xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *label_array, xuLong *o
     }
     (*offs)++;
 
-    xuLong offset = 0, len = 0;
-    xReChar * p = parseLabelName(sp + *offs, &len, &offset);
+    xuLong offset = 0; xInt index = 0, signal = 0; xuInt idx = 0; xReChar * p; xuInt len = 0;
+    index = parseLabelName(sp + *offs, context, &idx, &signal, &offset, &p, &len);
     *offs += offset;
+    if (signal < 0 || index > 0 || idx % 2 == 0) {
+        return -1;
+    }
 
     if (!obj) {
         return -1;
@@ -437,15 +459,13 @@ xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *label_array, xuLong *o
 
     Label label = {};
     initLabel(&label, p, len, obj, allocator);
-    xInt i = arrayFindByAttr(label_array, (xuByte *) p,
-                             (xuByte *(*)(void *)) labelGetName, LABEL_NAME_LEN * sizeof(xReChar));
-    if (i >= 0 || arrayAppend(label_array, &label, allocator) < 0) {
+    if (arrayAppend(context[idx], &label, allocator) < 0) {
         return -1;
     }
     return 0;
 }
 
-ReObj *parseCallLabel(xReChar *regexp, xuLong *offs, Array *label_array, Allocator *allocator) {
+ReObj *parseCallLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar  * sp = regexp;
 
@@ -454,16 +474,18 @@ ReObj *parseCallLabel(xReChar *regexp, xuLong *offs, Array *label_array, Allocat
     }
     (*offs) ++;
 
-    xuLong offset = 0, len = 0;
-    xReChar * p = parseLabelName(sp + *offs, &len, &offset);
+    xuLong offset = 0; xInt index = 0, signal = 0; xuInt idx = 0; xReChar * p; xuInt len = 0;
+    index = parseLabelName(sp + *offs, context, &idx, &signal, &offset, &p, &len);
     *offs += offset;
+    if (signal < 0 || index < 0) {
+        return nullptrof(ReObj);
+    }
 
-    xInt i = arrayFindByAttr(label_array, (xuByte *) p,
-                             (xuByte *(*)(void *)) labelGetName, len * sizeof(xReChar));
-    return i >= 0 ? ((Label *) label_array->array)[i].object : nullptrof(ReObj);
+    return (ReObj *) createCallee(context[idx], index, allocator);
+
 }
 
-Sequence * parseLastValOfLabel(xReChar *regexp, xuLong *offs, Array *label_array, Allocator *allocator) {
+Sequence *parseLastValOfLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar  * sp = regexp;
 
@@ -472,42 +494,67 @@ Sequence * parseLastValOfLabel(xReChar *regexp, xuLong *offs, Array *label_array
     }
     (*offs) ++;
 
-    xuLong offset = 0, len = 0;
-    xReChar * p = parseLabelName(sp + *offs, &len, &offset);
+    xuLong offset = 0; xInt index = 0, signal = 0; xuInt idx = 0; xReChar * p; xuInt len = 0;
+    index = parseLabelName(sp + *offs, context, &idx, &signal, &offset, &p, &len);
     *offs += offset;
+    if (signal < 0 || index < 0) {
+        return nullptrof(Sequence);
+    }
+    if (idx % 2 == 0) {
+        return &((Group **)context[idx]->array)[index]->last_val;
+    }
 
-    xInt i = arrayFindByAttr(label_array, (xuByte *) p,
-                             (xuByte *(*)(void *)) labelGetName, len * sizeof(xReChar));
-    return i >= 0 ? &((Label *) label_array->array)[i].last_val : nullptrof(Sequence);
 }
 
-xReChar *parseLabelName(xReChar *regexp, xuLong *len, xuLong *offs) {
-    *offs = 0;
+xInt parseLabelName(xReChar *regexp, Array *context[], xuInt *idx, xInt *signal, xuLong *offs, xReChar **p, xuInt *len) {
+    *offs = 0; *signal = 0;
     xReChar  * sp = regexp;
 
     while (stridx(WHITESPACE, sp[*offs]) >= 0) {
         (*offs) ++;
     }
     if (sp[*offs] != beginL) {
-        return nullptrof(xReChar);
+        *signal = -1;
+        return -1;
     }
     (*offs)++;
     while (stridx(WHITESPACE, sp[*offs]) >= 0) {
         (*offs) ++;
     }
-    xuInt p = *offs;
-    while (xReChar('a') <= sp[*offs] && sp[*offs] <= xReChar('z') ) (*offs) ++;
-    *len = (*offs - p <= LABEL_NAME_LEN) ? *offs - p : LABEL_NAME_LEN;
+
+    *idx = 2;
+    xInt index = -1;
+    if (sp[*offs] == dot) { *idx -= 2; (*offs) ++; }
+    while (sp[*offs] && sp[*offs] != endL){
+        if (xReChar('a') <= sp[*offs] && sp[*offs] <= xReChar('z')) {
+            *p = sp + *offs; *idx += 1;
+            while (xReChar('a') <= sp[*offs] && sp[*offs] <= xReChar('z') ) (*offs) ++;
+            *len = *offs - (*p - sp);
+            index = arrayFindByAttr(context[*idx], (xuByte *) *p,
+                                     (xuByte *(*)(void *)) labelGetName, *len * sizeof(xReChar));
+            break;
+        } else if (xReChar('0') <= sp[*offs] && sp[*offs] <= xReChar('9')) {
+            *len = str2ul_d(sp + *offs, (xuLong *) &index);
+            *offs += *len;
+            if (index > context[*idx]->cur_len) index = -1;
+            break;
+        } else if (stridx(WHITESPACE, sp[*offs]) >= 0) {
+            (*offs) ++;
+        } else {
+            *signal = -1; return -1;
+        }
+    }
 
     while (stridx(WHITESPACE, sp[*offs]) >= 0) {
         (*offs) ++;
     }
     if (sp[*offs] != endL) {
-        return nullptrof(xReChar);
+        *signal = -1;
+        return -1;
     }
-    (*offs)++;
+    (*offs) ++;
 
-    return sp + p;
+    return index;
 }
 
 #undef LAMBDA

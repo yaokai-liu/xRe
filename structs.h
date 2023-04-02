@@ -11,6 +11,7 @@ typedef enum {
     NON = 0,
     SEQ, SET, GRP,
     CNT, EXP, LBL,
+    CAL,
 } obj_type;
 
 #define OBJ_BASIC_ATTRIBUTE \
@@ -77,8 +78,7 @@ typedef struct Group {
     Array * branches;
     Group ** groups;
     Label * labels;
-    xReChar *   last;
-    xInt        last_len;
+    Sequence last_val;
 } Group;
 
 
@@ -101,6 +101,11 @@ typedef struct {
     ObjItem obj;
 } Count;
 
+typedef struct {
+    OBJ_BASIC_ATTRIBUTE
+    Array * array;
+    xInt    index;
+} Callee;
 
 #undef OBJ_BASIC_ATTRIBUTE
 
@@ -112,6 +117,7 @@ Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[
                  xuInt n_labels, Label *labels, Allocator *allocator);
 Count *createCnt(Expression *min, Expression *max, Expression *step, ObjItem *obj, Allocator *allocator);
 Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator);
+Callee * createCallee(Array * array, xInt index, Allocator * allocator);
 xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Allocator *allocator);
 
 xVoid releaseObj(ReObj *obj, Allocator * allocator);

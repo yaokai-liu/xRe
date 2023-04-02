@@ -149,6 +149,8 @@ Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[
     group->groups = groups;
     group->n_labels = n_labels;
     group->labels = labels;
+    group->last_val.id = SEQ;
+    group->last_val.unreleasable = true;
     return group;
 }
 
@@ -181,6 +183,13 @@ Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator)
     return exp;
 }
 
+Callee * createCallee(Array * array, xInt index, Allocator * allocator) {
+    Callee * callee = allocator->calloc(1, sizeof(Callee));
+    callee->id = CAL;
+    callee->array = array;
+    callee->index = index;
+    return callee;
+}
 
 #define BUFFER_LEN XRE_BASIC_ALLOCATE_LENGTH
 
@@ -265,6 +274,7 @@ xVoid releaseGrp(Group *grp, Allocator * allocator);
 xVoid releaseCnt(Count *cnt, Allocator * allocator);
 xVoid releaseExp(Expression *exp, Allocator * allocator);
 xVoid releaseLabel(Label * label, Allocator * allocator);
+xVoid releaseCallee(Callee *callee, Allocator * allocator);
 
 xVoid releaseObj(ReObj *obj, Allocator * allocator) {
     static xVoid (*RELEASE_ARRAY[])(xVoid *, Allocator *) = {
@@ -275,6 +285,7 @@ xVoid releaseObj(ReObj *obj, Allocator * allocator) {
             [CNT] = (xVoid (*)(xVoid *, Allocator *)) releaseCnt,
             [EXP] = (xVoid (*)(xVoid *, Allocator *)) releaseExp,
             [LBL] = (xVoid (*)(xVoid *, Allocator *)) releaseLabel,
+            [CAL] = (xVoid (*)(xVoid *, Allocator *)) releaseCallee,
     };
     if (obj->unreleasable)
         return;
@@ -323,6 +334,10 @@ xVoid releaseLabel(Label * label, Allocator * allocator) {
 xVoid releaseExp(Expression *exp, Allocator * allocator) {
     if (! exp->unreleasable)
         allocator->free(exp);
+}
+
+xVoid releaseCallee(Callee *callee, Allocator * allocator) {
+    allocator->free(callee);
 }
 
 xVoid clearObjArray(Array _array, Allocator * allocator) {
