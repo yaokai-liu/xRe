@@ -100,11 +100,15 @@ typedef struct {
     Expression * step;
     ObjItem obj;
 } Count;
-
+typedef enum {
+    callee,
+    last_value
+} call_t;
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
+    call_t  call_type;
     Array * array;
-    xInt    index;
+    xuInt   index;
 } Callee;
 
 #undef OBJ_BASIC_ATTRIBUTE
@@ -117,11 +121,14 @@ Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[
                  xuInt n_labels, Label *labels, Allocator *allocator);
 Count *createCnt(Expression *min, Expression *max, Expression *step, ObjItem *obj, Allocator *allocator);
 Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator);
-Callee * createCallee(Array * array, xInt index, Allocator * allocator);
+Callee *createCallee(Array *array, xuInt index, call_t call_type, Allocator *allocator);
 xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Allocator *allocator);
 
 xVoid releaseObj(ReObj *obj, Allocator * allocator);
+
 xVoid clearObjArray(Array _array, Allocator * allocator);
+
+xVoid clearLabelArray(Array _array, Allocator * allocator);
 
 xVoid arrayInit(Array *_array, xSize _type_size, Allocator *allocator);
 xInt arrayAppend(Array * _array, const xVoid *_element, Allocator * allocator);

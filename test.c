@@ -31,12 +31,19 @@ xInt main() {
             .memcpy = t_memcpy,
             };
     XReProcessor * processor = xReProcessor(&allocator);
-    xReChar * test_str = xReString("abc=<sss>@<sss>");
+    xReChar * test_str = xReString("(abc=<sss>)@<sss>$<sss>@<.sss>");
     Group * group = processor->parse(processor, test_str);
-    if (group) {
-        printf("\nBranch Count = %d\n\n", group->n_branches);
-        releaseObj((ReObj *) group, &allocator);
+    if (!group) {
+        printf("\nParsing failed at:\n");
+        printf("\t%s\n\t", test_str);
+        for (int i = 0; i < processor->errorLog.position; i++) printf("~");
+        printf("^\n");
+        return -1;
     }
+    printf("\nBranch Count = %d\n\n", group->n_branches);
+    releaseObj((ReObj *) group, &allocator);
+    allocator.free(processor->global_group_array.array);
+    clearLabelArray(processor->global_label_array, &allocator);
     allocator.free(processor);
     xInt unreleased = 0;
     for (int i = 0; i < ENTITY_COUNT; i++) {
@@ -46,7 +53,7 @@ xInt main() {
             unreleased ++ ;
         }
     }
-    printf("unreleased = %d\n", unreleased);
+    printf("\nUnreleased Entity Count: %d\n", unreleased);
     return 0;
 }
 

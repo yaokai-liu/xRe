@@ -183,11 +183,12 @@ Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator)
     return exp;
 }
 
-Callee * createCallee(Array * array, xInt index, Allocator * allocator) {
+Callee *createCallee(Array *array, xuInt index, call_t call_type, Allocator *allocator) {
     Callee * callee = allocator->calloc(1, sizeof(Callee));
     callee->id = CAL;
     callee->array = array;
     callee->index = index;
+    callee->call_type = call_type;
     return callee;
 }
 
@@ -215,8 +216,7 @@ xInt arrayAppend(Array * _array, const xVoid *_element, Allocator * allocator) {
 }
 
 xInt arraySet(Array * _array, xuInt index, const xVoid *_element, Allocator * allocator) {
-    if (index >= _array->cur_len)
-        return -1;
+    if (index >= _array->cur_len) return -1;
     allocator->memcpy(_array->array + index * _array->ele_size, _element, _array->ele_size);
     return 0;
 }
@@ -273,7 +273,7 @@ xVoid releaseSet(Set *set, Allocator * allocator);
 xVoid releaseGrp(Group *grp, Allocator * allocator);
 xVoid releaseCnt(Count *cnt, Allocator * allocator);
 xVoid releaseExp(Expression *exp, Allocator * allocator);
-xVoid releaseLabel(Label * label, Allocator * allocator);
+xVoid releaseLabel(Label *label, xBool _free, Allocator *allocator);
 xVoid releaseCallee(Callee *callee, Allocator * allocator);
 
 xVoid releaseObj(ReObj *obj, Allocator * allocator) {
@@ -283,8 +283,6 @@ xVoid releaseObj(ReObj *obj, Allocator * allocator) {
             [GRP] = (xVoid (*)(xVoid *, Allocator *)) releaseGrp,
             [SET] = (xVoid (*)(xVoid *, Allocator *)) releaseSet,
             [CNT] = (xVoid (*)(xVoid *, Allocator *)) releaseCnt,
-            [EXP] = (xVoid (*)(xVoid *, Allocator *)) releaseExp,
-            [LBL] = (xVoid (*)(xVoid *, Allocator *)) releaseLabel,
             [CAL] = (xVoid (*)(xVoid *, Allocator *)) releaseCallee,
     };
     if (obj->unreleasable)
@@ -292,12 +290,12 @@ xVoid releaseObj(ReObj *obj, Allocator * allocator) {
     RELEASE_ARRAY[obj->id](obj, allocator);
 }
 
-#define FREE_OBJ(_obj) \
+#define FREE_RE_OBJ(_obj) \
     allocator->free(_obj); \
 
 xVoid releaseSeq(Sequence *seq, Allocator * allocator) {
     allocator->free(seq->value);
-    FREE_OBJ(seq)
+    FREE_RE_OBJ(seq)
 }
 
 xVoid releaseGrp(Group *grp, Allocator * allocator) {
@@ -305,14 +303,16 @@ xVoid releaseGrp(Group *grp, Allocator * allocator) {
         clearObjArray(grp->branches[i], allocator);
     allocator->free(grp->branches);
     allocator->free(grp->groups);
+    for (xSize i = 0; i < grp->n_labels; i ++)
+        releaseObj(grp->labels[i].object, allocator);
     allocator->free(grp->labels);
-    FREE_OBJ(grp)
+    FREE_RE_OBJ(grp)
 }
 
 xVoid releaseSet(Set *set, Allocator * allocator) {
     allocator->free(set->ranges);
     allocator->free(set->plains);
-    FREE_OBJ(set)
+    FREE_RE_OBJ(set)
 }
 
 
@@ -324,32 +324,49 @@ xVoid releaseCnt(Count *cnt, Allocator * allocator) {
         releaseExp(cnt->max, allocator);
     releaseExp(cnt->step, allocator);
     if (!cnt->unreleasable)
-        FREE_OBJ(cnt)
+        FREE_RE_OBJ(cnt)
 }
 
-xVoid releaseLabel(Label * label, Allocator * allocator) {
-    allocator->free(label);
+xVoid releaseLabel(Label *label, xBool _free, Allocator *allocator) {
+    releaseObj(label->object, allocator);
+    if (_free)
+        FREE_RE_OBJ(label)
 }
+//
 
 xVoid releaseExp(Expression *exp, Allocator * allocator) {
     if (! exp->unreleasable)
-        allocator->free(exp);
+        FREE_RE_OBJ(exp)
 }
 
 xVoid releaseCallee(Callee *callee, Allocator * allocator) {
-    allocator->free(callee);
+    FREE_RE_OBJ(callee)
 }
 
-xVoid clearObjArray(Array _array, Allocator * allocator) {
+xVoid releaseObjItem(ObjItem *obj_item, xBool _free, Allocator *allocator) {
+    if (obj_item->releasable)
+        releaseObj(obj_item->obj, allocator);
+    if (_free)
+        FREE_RE_OBJ(obj_item)
+}
+
+xVoid clearArray(Array _array, void (*clear_method)(void *, xBool, Allocator *), xBool _free, Allocator *allocator) {
     for (typeof(_array.cur_len) i = 0; i < _array.cur_len; i ++) {
-        if (((ObjItem *)_array.array)[i].releasable) {
-            releaseObj(((ObjItem *)_array.array)[i].obj, allocator);
-        }
+        clear_method(_array.array + i * _array.ele_size, _free, allocator);
     }
     allocator->free(_array.array);
     _array.cur_len = 0;
 }
-#undef FREE_OBJ
+
+xVoid clearObjArray(Array _array, Allocator * allocator) {
+    clearArray(_array, (void (*)(void *, xBool, Allocator *)) releaseObjItem, false, allocator);
+}
+
+xVoid clearLabelArray(Array _array, Allocator * allocator) {
+    clearArray(_array, (void (*)(void *, xBool, Allocator *)) releaseLabel, false, allocator);
+}
+
+#undef FREE_RE_OBJ
 
 #define SET_ATTR(_obj) \
 (_obj)->only_match ? (regexp[i] = xReChar('!'), i++) : 0; \

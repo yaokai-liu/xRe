@@ -15,11 +15,9 @@ static ReObj * parseCrt(xReChar *regexp, xuLong *offs, Allocator *allocator);
 static Count * parseMacroCount(xReChar *regexp, ObjItem *obj, xuLong *offs, Allocator *allocator);
 static Sequence * parseSeq(xReChar * regexp, xuLong * offs, Allocator * allocator);
 static Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator);
-static xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *offs, Allocator *allocator);
-static ReObj *parseCallLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator);
-static Sequence *parseLastValOfLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator);
+static Callee * parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *offs, Allocator *allocator);
+static Callee * parseCallLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator);
 static Count * parseCntExp(xReChar *regexp, ObjItem *obj, xuLong *offs, Allocator *allocator);
-static Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
 
 LAMBDA xuByte *labelGetName(Label * label) {
     return (xuByte *) &(label->name);
@@ -49,6 +47,14 @@ Group * parse(xReChar *regexp,
             return nullptrof(Group);
         else
             (*offs) ++;
+    }
+
+    xuInt global_index = 0;
+    {
+        Group *g = nullptrof(Group);
+        if (arrayAppend(g_group_array, &g, allocator) < 0)
+            return nullptrof(Group);
+        global_index = g_group_array->cur_len - 1;
     }
 
     xBool at_begin = false;
@@ -116,10 +122,6 @@ Group * parse(xReChar *regexp,
                     releaseObj(ob_obj.obj, allocator);
                     goto __failed_parse_group;
                 }
-                if (arrayAppend(g_group_array, &ob_obj.obj, allocator) < 0) {
-                    releaseObj(ob_obj.obj, allocator);
-                    goto __failed_parse_group;
-                }
                 break;
             }
             case beginC: {
@@ -137,23 +139,15 @@ Group * parse(xReChar *regexp,
                 goto __label_000001_clean_attributes;
             }
             case assign: {
-                xVoid * obj = ((ObjItem *)obj_array.array)[obj_array.cur_len - 1].obj;
-                xInt s = parseAssignLabel(sp + *offs, obj, context, &offset, allocator);
-                (*offs) += offset;
+                xInt s = arrayPop(&obj_array, &ob_obj, allocator);
                 if (s < 0) goto __failed_parse_group;
-                continue;
+                ob_obj.obj = (ReObj *) parseAssignLabel(sp + *offs, ob_obj.obj, context, &offset, allocator);
+                ob_obj.releasable = true;
+                break;
             }
-            case call: {
-                ob_obj.obj = parseCallLabel(sp + *offs, context, &offset, allocator);
-                *offs += offset;
-                if (!ob_obj.obj) goto __failed_parse_group;
-                goto __label_000002_append_obj;
-            }
+            case call:
             case lastValue: {
-                ob_obj.obj = (ReObj *) parseLastValOfLabel(sp + *offs, context, &offset, allocator);
-                ob_obj.releasable = false;
-                *offs += offset;
-                if (!ob_obj.obj) goto __failed_parse_group;
+                ob_obj.obj = (ReObj *) parseCallLabel(sp + *offs, context, &offset, allocator);
                 break;
             }
             default:
@@ -172,7 +166,6 @@ Group * parse(xReChar *regexp,
         ((ReObj *)ob_obj.obj)->only_match = _only_match;
         ((ReObj *)ob_obj.obj)->is_inverse = _is_inverse;
 
-        __label_000002_append_obj:
         if (arrayAppend(&obj_array, &ob_obj, allocator) < 0) {
             goto __failed_parse_group;
         }
@@ -198,11 +191,13 @@ Group * parse(xReChar *regexp,
     arrayRetreat(&group_array, allocator);
     arrayRetreat(&label_array, allocator);
 
-    return createGrp(at_begin, at_end,
+    Group * grp = createGrp(at_begin, at_end,
                      branch_array.cur_len, branch_array.array,
                      group_array.cur_len, group_array.array,
                      label_array.cur_len, label_array.array,
                      allocator);
+    arraySet(g_group_array, global_index, &grp, allocator);
+    return grp;
 
     __failed_parse_group:
     clearObjArray(obj_array, allocator);
@@ -367,6 +362,8 @@ Set * parseSet(xReChar * regexp, xuLong * offs, Allocator * allocator) {
     return nullptrof(Set);
 }
 
+static Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator);
+
 Count * parseCntExp(xReChar *regexp, ObjItem *obj, xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar * sp = regexp;
@@ -437,12 +434,13 @@ Expression * parseExp(xReChar * regexp, xuLong * offs, Allocator * allocator) {
 
 xInt parseLabelName(xReChar *regexp, Array *context[], xuInt *idx, xInt *signal, xuLong *offs, xReChar **p, xuInt *len);
 
-xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *offs, Allocator *allocator) {
+Callee * parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar  * sp = regexp;
 
     if (!sp[*offs] || sp[*offs] != assign) {
-        return -1;
+        releaseObj(obj, allocator);
+        return nullptrof(Callee);
     }
     (*offs)++;
 
@@ -450,60 +448,53 @@ xInt parseAssignLabel(xReChar *regexp, ReObj *obj, Array *context[], xuLong *off
     index = parseLabelName(sp + *offs, context, &idx, &signal, &offset, &p, &len);
     *offs += offset;
     if (signal < 0 || index > 0 || idx % 2 == 0) {
-        return -1;
+        releaseObj(obj, allocator);
+        return nullptrof(Callee);
     }
 
     if (!obj) {
-        return -1;
+        releaseObj(obj, allocator);
+        return nullptrof(Callee);
     }
 
     Label label = {};
     initLabel(&label, p, len, obj, allocator);
     if (arrayAppend(context[idx], &label, allocator) < 0) {
-        return -1;
+        releaseObj(obj, allocator);
+        return nullptrof(Callee);
     }
-    return 0;
+    return createCallee(context[idx], context[idx]->cur_len - 1, callee, allocator);
 }
 
-ReObj *parseCallLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator) {
+Callee * parseCallLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator) {
     *offs = 0;
     xReChar  * sp = regexp;
 
-    if (!sp[*offs] || sp[*offs] != call) {
-        return nullptrof(ReObj);
+    call_t call_type = 0;
+    switch (sp[*offs]) {
+        case call:
+            call_type = callee;
+            break;
+        case lastValue:
+            call_type = last_value;
+            break;
+        default:
+            return nullptrof(Callee);
     }
     (*offs) ++;
 
     xuLong offset = 0; xInt index = 0, signal = 0; xuInt idx = 0; xReChar * p; xuInt len = 0;
     index = parseLabelName(sp + *offs, context, &idx, &signal, &offset, &p, &len);
+    if (signal < 0) {
+        return nullptrof(Callee);
+    }
+    if (index < 0) {
+        (*offs) ++;
+        return nullptrof(Callee);
+    }
     *offs += offset;
-    if (signal < 0 || index < 0) {
-        return nullptrof(ReObj);
-    }
 
-    return (ReObj *) createCallee(context[idx], index, allocator);
-
-}
-
-Sequence *parseLastValOfLabel(xReChar *regexp, Array *context[], xuLong *offs, Allocator *allocator) {
-    *offs = 0;
-    xReChar  * sp = regexp;
-
-    if (!sp[*offs] || sp[*offs] != lastValue) {
-        return nullptrof(Sequence);
-    }
-    (*offs) ++;
-
-    xuLong offset = 0; xInt index = 0, signal = 0; xuInt idx = 0; xReChar * p; xuInt len = 0;
-    index = parseLabelName(sp + *offs, context, &idx, &signal, &offset, &p, &len);
-    *offs += offset;
-    if (signal < 0 || index < 0) {
-        return nullptrof(Sequence);
-    }
-    if (idx % 2 == 0) {
-        return &((Group **)context[idx]->array)[index]->last_val;
-    }
-
+    return createCallee(context[idx], index, call_type, allocator);
 }
 
 xInt parseLabelName(xReChar *regexp, Array *context[], xuInt *idx, xInt *signal, xuLong *offs, xReChar **p, xuInt *len) {
