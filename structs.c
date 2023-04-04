@@ -149,8 +149,6 @@ Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[
     group->groups = groups;
     group->n_labels = n_labels;
     group->labels = labels;
-    group->last_val.id = SEQ;
-    group->last_val.unreleasable = true;
     return group;
 }
 
@@ -170,8 +168,6 @@ xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Alloca
         label->name[i] = name[i];
     }
     label->object = obj;
-    label->last_val.id = SEQ;
-    label->last_val.unreleasable = true;
     return 0;
 }
 

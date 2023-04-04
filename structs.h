@@ -57,28 +57,28 @@ typedef struct {
 } Set;
 
 #ifndef LABEL_NAME_LEN
-#define LABEL_NAME_LEN  12
+#define LABEL_NAME_LEN  8
 #endif
 typedef struct {
     obj_type    id;
+    xuInt       offset;
     xReChar     name[LABEL_NAME_LEN];
     xVoid *     object;
-    Sequence    last_val;
 } Label;
 
 
 typedef struct Group Group;
 typedef struct Group {
     OBJ_BASIC_ATTRIBUTE
-    xBool at_begin;
-    xBool at_end;
+    xBool at_begin: 1;
+    xBool at_end: 1;
+    xuInt  offset;
     xuInt n_branches;
     xuInt n_groups;
     xuInt n_labels;
     Array * branches;
     Group ** groups;
     Label * labels;
-    Sequence last_val;
 } Group;
 
 
@@ -100,6 +100,7 @@ typedef struct {
     Expression * step;
     ObjItem obj;
 } Count;
+
 typedef enum {
     callee,
     last_value
