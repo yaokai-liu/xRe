@@ -89,7 +89,10 @@ enum exp_type{
 typedef struct {
     OBJ_BASIC_ATTRIBUTE
     enum exp_type exp_type;
-    xVoid * value;
+    struct {
+        Array *array;
+        xuInt index;
+    } value;
 } Expression;
 
 
@@ -121,7 +124,7 @@ Set * createSet(xuInt n_plains, xReChar * plain_buffer, xuInt n_ranges, Range * 
 Group *createGrp(xBool at_begin, xBool at_end, xuInt n_branches, Array branches[], xuInt n_groups, Group *groups[],
                  xuInt n_labels, Label *labels, Allocator *allocator);
 Count *createCnt(Expression *min, Expression *max, Expression *step, ObjItem *obj, Allocator *allocator);
-Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator);
+Expression *createExp(enum exp_type type, Array *array, xuInt index, Allocator *allocator);
 Callee *createCallee(Array *array, xuInt index, call_t call_type, Allocator *allocator);
 xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Allocator *allocator);
 

@@ -50,8 +50,8 @@ Set SPECIAL_SET_ARRAY[] = {
 };
 
 static Expression SPECIAL_EXP_ARRAY[] = {
-        {.id = EXP, .unreleasable = true, .exp_type = number, .value = (xVoid *) 0},
-        {.id = EXP, .unreleasable = true, .exp_type = number, .value = (xVoid *) 1},
+        {.id = EXP, .unreleasable = true, .exp_type = number, .value.array = nullptrof(Array), .value.index = 0},
+        {.id = EXP, .unreleasable = true, .exp_type = number, .value.array = nullptrof(Array), .value.index = 1},
 };
 
 Count SPECIAL_CNT_ARRAY[] = {
@@ -171,11 +171,14 @@ xInt *initLabel(Label *label, const xReChar *name, xuInt len, ReObj *obj, Alloca
     return 0;
 }
 
-Expression * createExp(enum exp_type type, xVoid * value, Allocator * allocator) {
+Expression *createExp(enum exp_type type, Array *array, xuInt index, Allocator *allocator) {
     Expression * exp = allocator->calloc(1, sizeof(Expression));
     exp->id = EXP;
     exp->exp_type = type;
-    exp->value = value;
+    exp->value.index = index;
+    if (type == label) {
+        exp->value.array = array;
+    }
     return exp;
 }
 
