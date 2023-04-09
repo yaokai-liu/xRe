@@ -11,6 +11,10 @@
 #define XRE_BASIC_ALLOCATE_LENGTH   32
 #endif
 
+#if (XRE_BASIC_ALLOCATE_LENGTH <= 0)
+#error "Macro 'XRE_BASIC_ALLOCATE_LENGTH' must be a positive integer!"
+#endif
+
 typedef struct {
     xVoid * (*malloc)(xSize);
     xVoid * (*calloc)(xSize, xSize);
