@@ -32,6 +32,17 @@ target_link_options(xRe PRIVATE "-nostdlib")
 target_link_libraries(xReVM PRIVATE xRe)
 target_include_directories(xReVM PRIVATE .)
 
+add_library(xReRT runtime.c runtime.h)
+target_compile_options(xRe PRIVATE "-fno-builtin")
+target_link_options(xRe PRIVATE "-nodefaultlibs")
+target_link_options(xRe PRIVATE "-nostdlib")
+target_include_directories(xReRT PRIVATE .)
+
+add_executable(test_rt test_rt.c)
+target_link_libraries(test_rt PRIVATE xReRT xRe)
+target_compile_options(test_rt PRIVATE "-fno-builtin")
+target_link_options(xRe PRIVATE "-nostdlib")
+
 add_executable(test_xRe test.c)
 target_link_libraries(test_xRe PRIVATE xRe)
 #target_compile_options(test_xRe PRIVATE "-fno-builtin")
